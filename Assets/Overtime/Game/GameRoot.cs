@@ -24,7 +24,8 @@ namespace Overtime
         World world; RunnerView runner; CameraRig rig; Fx fx; Hud hud; SwipeInput input; Sfx sfx; Mood mood = new Mood();
         Light key, runnerLight; GameObject bike; Transform bubble;
         ChromaticAberration chroma; Bloom bloom; ColorAdjustments grade;
-        float time, countT, endT, dashT, hitT, shownScore, epiT;
+        float time, countT, endT, dashT, hitT, shownScore, epiT, perfT;
+        int perfFrames, perfStage;
         Transform[] traffic; float[] trafficT, trafficV;
         int countN, loaded = -1, briefIdx;
 
@@ -226,6 +227,24 @@ namespace Overtime
             OpenShop();
         }
 
+        /// <summary>
+        /// Keep it smooth on slower phones: if the frame rate sags, give up sharpness first, then shadows, then bloom.
+        /// Smooth motion matters more to a runner than any of them.
+        /// </summary>
+        void WatchFrameRate()
+        {
+            if (Application.isEditor || perfStage >= 3) return;
+            perfT += Time.unscaledDeltaTime; perfFrames++;
+            if (perfT < 2.5f) return;
+            float fps = perfFrames / perfT; perfT = 0; perfFrames = 0;
+            if (fps > 44 || time < 4) return;
+            perfStage++;
+            var urp = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
+            if (perfStage == 1) { if (urp) urp.renderScale = 0.68f; }
+            else if (perfStage == 2) { key.shadows = LightShadows.None; runnerLight.enabled = false; }
+            else { bloom.active = false; chroma.active = false; if (urp) urp.renderScale = 0.58f; }
+        }
+
         public void StartEpilogue()
         {
             Prepare(0);
@@ -264,6 +283,7 @@ namespace Overtime
         {
             float rdt = Mathf.Min(0.05f, Time.unscaledDeltaTime);
             time += rdt;
+            WatchFrameRate();
             input.Update();
             float simDt = 0;
             bool playing = mode == Mode.Play;
