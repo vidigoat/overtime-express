@@ -54,7 +54,7 @@ namespace Overtime
             capsules.Clear(); padMats.Clear(); coins.Clear(); powers.Clear(); customer?.Dispose(); customer = null;
             var art = ArtLibrary.I;
             int district = level.delivery.district;
-            var coinMat = Mats.Glow(Mats.Hex(0xffc21a), 1.5f);
+            var coinMat = Mats.Glow(Color.white, 1.6f);
             seed = (uint)(level.length * 7919);
             var kit = KitLibrary.I;
             Material dark = Mats.Lit(Mats.Hex(0x14152b), 0.4f), mid = Mats.Lit(Mats.Hex(0x23264a), 0.4f), light = Mats.Lit(Mats.Hex(0x3a4078), 0.4f);
@@ -171,8 +171,9 @@ namespace Overtime
             foreach (var c in level.coins)
             {
                 // credits: glowing gold, so they read as light against the night
-                var t = art.Spawn("Coin_A", root.transform, new Vector3(c.x, c.y, c.s), Quaternion.identity, 0.5f, false);
-                if (t) { foreach (var r in t.GetComponentsInChildren<Renderer>()) r.sharedMaterial = coinMat; coins.Add(t); }
+                // Tocks: the city's money is time. each one is a hex token with clock hands
+                var t = Mesh(TockMesh, coinMat, new Vector3(c.x, c.y, c.s), Quaternion.identity, Vector3.one, false).transform;
+                coins.Add(t);
             }
 
             // power-ups: a courier's lunch break. each floats on a lit pad under a beam so you can read it from far off
@@ -274,13 +275,50 @@ namespace Overtime
             ("bush", 1.7f), ("bush", 2.1f), ("streetlight", 1.35f), ("Barrel_A", 1.3f), ("Pallet_Large", 1.2f), ("Box_A", 1.3f), ("Box_C", 1.3f), ("trafficlight_A", 1.3f),
         };
 
+        static Mesh tock;
+        /// <summary>A Tock: a gold hexagonal token with a dark face and two bright clock hands, built as one mesh.</summary>
+        public static Mesh TockMesh
+        {
+            get
+            {
+                if (tock) return tock;
+                var v = new List<Vector3>(); var c = new List<Color>(); var tri = new List<int>();
+                void Hex(float r, float z0, float z1, Color col)
+                {
+                    int b = v.Count;
+                    for (int k = 0; k < 2; k++)
+                        for (int i = 0; i < 6; i++) { float a = i * Mathf.PI / 3 + Mathf.PI / 6; v.Add(new Vector3(Mathf.Cos(a) * r, Mathf.Sin(a) * r, k == 0 ? z0 : z1)); c.Add(col); }
+                    for (int i = 1; i < 5; i++) { tri.AddRange(new[] { b, b + i + 1, b + i }); tri.AddRange(new[] { b + 6, b + 6 + i, b + 6 + i + 1 }); }
+                    for (int i = 0; i < 6; i++) { int j = (i + 1) % 6; tri.AddRange(new[] { b + i, b + j, b + 6 + j, b + i, b + 6 + j, b + 6 + i }); }
+                }
+                void Bar(float x0, float y0, float x1, float y1, float w, Color col)
+                {
+                    var d = new Vector3(x1 - x0, y1 - y0, 0).normalized; var n = new Vector3(-d.y, d.x, 0) * w;
+                    foreach (float z in new[] { -0.075f, 0.075f })
+                    {
+                        int b = v.Count;
+                        v.Add(new Vector3(x0, y0, z) - n); v.Add(new Vector3(x0, y0, z) + n); v.Add(new Vector3(x1, y1, z) + n); v.Add(new Vector3(x1, y1, z) - n);
+                        for (int i = 0; i < 4; i++) c.Add(col);
+                        tri.AddRange(new[] { b, b + 1, b + 2, b, b + 2, b + 3, b, b + 2, b + 1, b, b + 3, b + 2 });
+                    }
+                }
+                Color gold = new Color(1f, 0.74f, 0.08f), dark = new Color(0.1f, 0.05f, 0.0f), hand = new Color(1.6f, 1.5f, 1.2f);
+                Hex(0.36f, -0.05f, 0.05f, gold);
+                Hex(0.26f, -0.065f, 0.065f, dark);
+                Bar(0, 0, 0, 0.19f, 0.03f, hand); Bar(0, 0, 0.12f, -0.06f, 0.03f, hand);
+                tock = new Mesh { name = "Tock" };
+                tock.SetVertices(v); tock.SetColors(c); tock.SetTriangles(tri, 0); tock.RecalculateNormals(); tock.RecalculateBounds();
+                return tock;
+            }
+        }
+
         /// <summary>How each power-up looks in the world and in the HUD: model, size, colour, name.</summary>
         public static readonly (string model, float scale, Vector3 offset, Color color, string name, string tag)[] PowerLook =
         {
             ("food_burger", 2.6f, new Vector3(0, -0.2f, 0), new Color(1f, 0.52f, 0.1f), "BURGER RUSH", "RUSH"),
             ("Can_A", 2.4f, new Vector3(0, -0.45f, 0), new Color(0.22f, 0.9f, 1f), "SODA FIZZ", "x2"),
             ("Box_B", 0.75f, new Vector3(0, -0.4f, 0), new Color(0.85f, 0.95f, 1f), "BUBBLE WRAP", "WRAP"),
-            ("Coin_C", 1.5f, new Vector3(0, -0.3f, 0), new Color(1f, 0.82f, 0.12f), "TIP MAGNET", "TIPS"),
+            ("Coin_C", 1.5f, new Vector3(0, -0.3f, 0), new Color(1f, 0.82f, 0.12f), "TOCK MAGNET", "MAGNET"),
         };
 
         public void Tick(Sim sim, float time, float dt)

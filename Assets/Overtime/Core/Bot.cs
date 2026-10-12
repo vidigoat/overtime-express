@@ -28,6 +28,8 @@ namespace Overtime.Core
             if (sim.state == RunState.Wall || sim.state == RunState.Grind) return;
 
             int? want = null; Wall wallAhead = null;
+            // drift toward a power-up when nothing more important is coming
+            foreach (var w in L.powers) if (!w.taken && w.s > s + 2 && w.s < s + 26) want = w.lane;
             foreach (var r in L.rails) if (s > r.s0 - 28 && s < r.s0 + 1) want = r.lane;
             foreach (var w in L.walls) if (s > w.s0 - 28 && s < w.s1 - 5) { want = w.side; wallAhead = w; }
 

@@ -17,7 +17,7 @@ for e in (dd.get('errors') or [])[:12]: print(' ', str(e)[:300])"
   ev) ev "$2" "$3" ;;
   shot) $U command capture_game_view -- --source screen --save_path "Shots/$2.png" --width ${3:-585} --height ${4:-1266} 2>&1 | tail -1 | cut -c1-160 ;;
   when) # when <StaticMember> <value> <shotname> : pause the game the frame the probe exceeds value, screenshot, resume
-    $U command wait_for -- --condition "{\"member\":\"Overtime.GameRoot.$2\",\"op\":\"greaterThan\",\"value\":$3}" --timeout_s ${5:-60} --poll_interval_ms 16 --on_met '{"pause":true}' 2>&1 | tail -1 | cut -c1-90
+    $U command wait_for --timeout 150 -- --condition "{\"member\":\"Overtime.GameRoot.$2\",\"op\":\"greaterThan\",\"value\":$3}" --timeout_s ${5:-60} --poll_interval_ms 16 --on_met '{"pause":true}' 2>&1 | tail -1 | cut -c1-90
     $U command capture_game_view -- --source screen --save_path "Shots/$4.png" --width 585 --height 1266 2>&1 | tail -1 | cut -c1-60
     ev 'UnityEditor.EditorApplication.isPaused = false; return "resumed";' ;;
   errors) $U command console --format json -- --level error --tail ${2:-6} 2>/dev/null | python3 -c "

@@ -15,7 +15,7 @@ namespace Overtime
         public enum Mode { Intro, Menu, Brief, Count, Play, Results, Shop, Epilogue }
         public static GameRoot I;
         /// <summary>Probes for automated checks: metres into the current wall-run / grind (-1 when not in one), distance run.</summary>
-        public static float WallProbe = -1, GrindProbe = -1, DistProbe;
+        public static float WallProbe = -1, GrindProbe = -1, DistProbe, EndProbe, RushProbe;
         public Mode mode = Mode.Menu;
         public Sim sim;
         public int levelIdx;
@@ -87,7 +87,7 @@ namespace Overtime
             runner = new RunnerView(transform);
             var bg = GameObject.CreatePrimitive(PrimitiveType.Sphere); Destroy(bg.GetComponent<Collider>()); bg.name = "Shield";
             bubble = bg.transform; bubble.SetParent(runner.root, false); bubble.localPosition = new Vector3(0, 0.95f, 0); bubble.localScale = Vector3.one * 2.3f;
-            bg.GetComponent<MeshRenderer>().sharedMaterial = Mats.Fx(1, new Color(0.5f, 0.9f, 1f) * 0.3f); bg.SetActive(false);
+            bg.GetComponent<MeshRenderer>().sharedMaterial = Mats.Fx(1, new Color(0.5f, 0.9f, 1f) * 0.1f); bg.SetActive(false);
             bike = BuildBike(runner.root);
             fx = new Fx(transform); world = new World(); hud = new Hud(); sfx = new Sfx(transform) { muted = true };   // sound stays off until real audio is added
             // the courier carries his own light: it keeps him readable at night and spills onto whatever he passes
@@ -155,7 +155,7 @@ namespace Overtime
         {
             mode = m;
             hud.intro.SetActive(m == Mode.Intro); hud.menu.SetActive(m == Mode.Menu); hud.brief.SetActive(m == Mode.Brief); hud.results.SetActive(m == Mode.Results);
-            hud.shop.SetActive(m == Mode.Shop); hud.play.SetActive(m == Mode.Play || m == Mode.Count || m == Mode.Epilogue);
+            hud.shop.SetActive(m == Mode.Shop); hud.play.SetActive(m == Mode.Play || m == Mode.Count);
         }
         bool Backdrop => mode == Mode.Menu || mode == Mode.Intro || mode == Mode.Brief || mode == Mode.Shop || mode == Mode.Epilogue;
 
@@ -197,7 +197,7 @@ namespace Overtime
             hud.bRule.text = d.rule;
             hud.bRuleBg.color = d.kind switch { ParcelKind.Heavy => new Color(1f, 0.72f, 0.3f), ParcelKind.Fragile => new Color(0.75f, 0.9f, 1f), ParcelKind.Hot => new Color(1f, 0.55f, 0.45f), ParcelKind.Live => new Color(0.7f, 1f, 0.7f), ParcelKind.Ticking => new Color(1f, 0.6f, 0.85f), _ => new Color(0.86f, 0.9f, 1f) };
             hud.bDot.text = d.briefing;
-            hud.bPay.text = $"PAY  <color=#e08a00>{d.pay}</color>  +  time bonus  +  tips";
+            hud.bPay.text = $"PAYS  <color=#ffc21a>{d.pay} TOCKS</color>  +  time left  +  pickups";
             SetMode(Mode.Brief);
         }
 
@@ -218,7 +218,7 @@ namespace Overtime
         void Buy(int i)
         {
             var g = GearList[i];
-            if (Owns(g.id) || Wallet < g.price) { hud.sNote.text = Owns(g.id) ? "You already own that." : $"You need {g.price - Wallet:N0} more. Go deliver something."; return; }
+            if (Owns(g.id) || Wallet < g.price) { hud.sNote.text = Owns(g.id) ? "You already own that." : $"You need {g.price - Wallet:N0} more Tocks. Go deliver something."; return; }
             Wallet -= g.price; PlayerPrefs.SetInt("ot.gear." + g.id, 1); PlayerPrefs.Save();
             sfx.Play("buy");
             hud.sNote.text = $"{g.name} equipped.";
@@ -301,6 +301,7 @@ namespace Overtime
             WallProbe = sim.state == RunState.Wall ? sim.s - sim.wall.s0 : -1;
             GrindProbe = sim.state == RunState.Grind ? sim.s - sim.rail.s0 : -1;
             DistProbe = mode == Mode.Play ? sim.s : 0;
+            EndProbe = mode == Mode.Play ? endT : 0; RushProbe = mode == Mode.Play ? sim.rushT : 0;
 
             // view
             mood.Update(sim, rdt, key, time);
@@ -312,7 +313,7 @@ namespace Overtime
             runner.Pose(sim, simDt, dashT > 0, sim.ended == EndReason.Finish, riding);
             if (sim.ended == EndReason.None || sim.ended == EndReason.Finish) runner.SetVisible(sim.invuln <= 0 || Mathf.FloorToInt(time * 22) % 2 == 0);
             // power-up dressing on the courier
-            bubble.gameObject.SetActive(sim.shield && runner.root.gameObject.activeSelf);
+            bubble.gameObject.SetActive(sim.shield && runner.root.gameObject.activeSelf && sim.ended == EndReason.None && mode == Mode.Play);
             if (sim.shield) bubble.localScale = Vector3.one * (2.3f + Mathf.Sin(time * 6) * 0.08f);
             if (sim.rushT > 0) fx.Burst(new Vector3(sim.x + Random.Range(-0.3f, 0.3f), sim.y + Random.Range(0.3f, 1.4f), sim.s - 0.4f), 3, Mats.Hex(0xff8a1f, 2.4f), 2.5f, 0.6f, sim.speed * 0.35f, 0.5f, 0.45f, 2);
             if (sim.fizzT > 0 && Random.value < 0.5f) fx.Burst(new Vector3(sim.x + Random.Range(-0.4f, 0.4f), sim.y + 1.2f, sim.s), 1, Mats.Hex(0x39e6ff, 2.2f), 1.2f, 2.5f, sim.speed * 0.8f, 0.3f, 0.7f, -3);
@@ -335,16 +336,19 @@ namespace Overtime
             if (handoff)
             {
                 var mid = new Vector3((sim.x + 1.7f) * 0.5f, sim.y + 1.15f, sim.s + 4.6f);
-                rig.Stage(mid + new Vector3(-3.4f, 0.5f, -1.9f), mid, Mathf.Min(1, rdt * 3.2f) * hk, 46);
+                // a tall phone screen sees very little sideways, so the two are framed in depth: over Kip's shoulder toward the customer
+                rig.Stage(mid + new Vector3(-1.9f, 0.75f, -5.2f), mid + new Vector3(0.1f, -0.1f, 0), hk, 50);
+                if (hud.play.activeSelf) hud.play.SetActive(false);
+                hud.Cine("DELIVERED", Hud.Yellow, 0.4f);
             }
             else if (mode == Mode.Epilogue)
             {
                 // the ride-off: low and close behind the bike, sun dead ahead
                 epiT += rdt;
                 var p = new Vector3(sim.x, sim.y, sim.s);
-                rig.Stage(p + new Vector3(1.6f, 1.25f, -3.6f), p + new Vector3(0, 1.0f, 6), Mathf.Min(1, rdt * 4), 58);
+                rig.Stage(p + new Vector3(1.5f, 1.35f, -4.4f), p + new Vector3(0, 1.0f, 1.5f), Mathf.SmoothStep(0, 1, epiT / 0.9f), 56);
                 string line = epiT < 2.6f ? "THE BIKE." : epiT < 5.4f ? "OVERTIME EXPRESS\nHAS WHEELS" : epiT < 8.2f ? "WAGES x1.5\n<size=20>the city just got smaller</size>" : "";
-                if (line != "" ) hud.Popup(line, Hud.Yellow, 0.4f);
+                if (line != "") hud.Cine(line, Hud.Yellow, 0.4f);
                 if (epiT > 9f) ToMenu();
             }
             TickTraffic(rdt);
@@ -422,7 +426,7 @@ namespace Overtime
                         if (playing)
                         {
                             sfx.Play("buy");
-                            string sub = k == 0 ? "smash through everything" : k == 1 ? "every move pays double" : k == 2 ? "next crash is free" : "tips fly to you";
+                            string sub = k == 0 ? "smash through everything" : k == 1 ? "every move pays double" : k == 2 ? "next crash is free" : "tocks fly to you";
                             hud.Popup($"{look.name}!\n<size=17>{sub}</size>", look.color, 1.2f);
                         }
                         break;
@@ -432,7 +436,7 @@ namespace Overtime
                     case EvType.OtEnter: rig.shake = 0.95f; rig.fovKick = 16; hitT = 1; if (playing) { sfx.Play("ot"); hud.Popup("OVERTIME!\n<size=17>double points · don't get hit</size>", Hud.Red, 1.4f); } break;
                     case EvType.OtExit: rig.fovKick = 10; fx.Burst(p + Vector3.up, 60, Mats.Hex(0x39e6ff, 2), 10, 3, f, 0.6f, 0.9f); if (playing) { sfx.Play("win", 0.7f); hud.Popup("CLOCKED BACK IN!\n<size=17>+3 seconds</size>", Color.white, 1.4f); } break;
                     case EvType.Finish: fx.Burst(p + Vector3.up * 1.5f, 110, Mats.Hex(0xffd21e, 2), 13, 6, f, 0.7f, 1.4f, 7); fx.Burst(p + Vector3.up * 1.5f, 70, Mats.Hex(0xff5cb3, 2), 10, 7, f, 0.7f, 1.5f, 7);
-                        if (playing) { sfx.Play("win"); hud.Popup("DELIVERED!", Hud.Yellow, 1.6f); } break;
+                        if (playing) sfx.Play("win"); break;
                     case EvType.Hint: if (playing) hud.Hint(e.text); break;
                     case EvType.Trick:
                         if (e.name == "walljump" || e.name == "launch") runner.flip = 1;
@@ -475,9 +479,9 @@ namespace Overtime
             Hud.SetPips(hud.rPips, stars);
             hud.rQuote.text = won ? $"{d.customer}:\n{d.thanks}" : sim.ended == EndReason.Timeout
                 ? "Dot: \"Overtime ran dry, boss. Chain your moves and it pays itself back.\"" : "Dot: \"One hit in overtime and it's over. Clock in earlier next time.\"";
-            hud.rLines.text = won ? $"Base pay\nTime bonus\nTips\nCare bonus ({Mathf.RoundToInt(sim.condition * 100)}%)" + (late > 0 ? "\nOvertime rate" : "") + (Owns("bike") ? "\nBike  x1.5" : "") : "Tips you kept";
+            hud.rLines.text = won ? $"Base pay\nTime bonus\nTocks picked up\nCare bonus ({Mathf.RoundToInt(sim.condition * 100)}%)" + (late > 0 ? "\nOvertime rate" : "") + (Owns("bike") ? "\nBike  x1.5" : "") : "Tocks you kept";
             hud.rAmounts.text = won ? $"{d.pay}\n{timeBonus}\n{tips}\n{care}" + (late > 0 ? $"\n{late}" : "") + (Owns("bike") ? "\n" : "") : tips.ToString();
-            hud.rTotal.text = $"WAGES  +{total:N0}";
+            hud.rTotal.text = $"WAGES  +{total:N0} TOCKS";
             bool canNext = won && levelIdx + 1 < Levels.All.Length && (stars >= 1 || Unlocked(levelIdx + 1));
             hud.next.gameObject.SetActive(canNext);
             hud.next.transform.parent.GetChild(hud.next.transform.GetSiblingIndex() - 1).gameObject.SetActive(canNext);

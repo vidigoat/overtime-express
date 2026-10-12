@@ -16,7 +16,8 @@ namespace Overtime
 
         public GameObject intro, menu, brief, play, results, shop, debt, flowRow, condRow;
         // play
-        public Text clock, label, score, coins, flow, popup, hint, cond;
+        public Text clock, label, score, coins, flow, popup, hint, cond, cine;
+        float cineT;
         public Image debtFill, progFill, flowFill, vignette, condFill;
         public GameObject[] powRow = new GameObject[4]; public Image[] powFill = new Image[4]; public Text[] powText = new Text[4];
         // menu
@@ -32,7 +33,7 @@ namespace Overtime
         public Text sWallet, sNote; public Button[] buy = new Button[7]; public Text[] sName = new Text[7]; public Text[] sPrice = new Text[7]; public Image[] sBg = new Image[7]; public Button sBack;
 
         readonly Font font, italic;
-        readonly Sprite round, pill;
+        readonly Sprite round, pill, hex;
         readonly RectTransform canvasRt;
         float popupT, hintT, clockBump, coinBump;
         Color popupColor = Color.white;
@@ -41,7 +42,7 @@ namespace Overtime
         {
             font = Resources.Load<Font>("ChakraPetch-Bold") ?? Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             italic = Resources.Load<Font>("ChakraPetch-BoldItalic") ?? font;
-            round = Rounded(64, 12); pill = Rounded(64, 31);
+            round = Rounded(64, 12); pill = Rounded(64, 31); hex = HexSprite(64);
             var cg = new GameObject("HUD", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
             var canvas = cg.GetComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             var sc = cg.GetComponent<CanvasScaler>(); sc.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; sc.referenceResolution = new Vector2(390, 844); sc.matchWidthOrHeight = 1f;
@@ -49,6 +50,9 @@ namespace Overtime
             if (Object.FindFirstObjectByType<EventSystem>() == null) new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
             vignette = Img(canvasRt, new Color(1, 0, 0.1f, 0), null, TextAnchor.MiddleCenter, 0, 0, 0, 0); Stretch(vignette.rectTransform); vignette.raycastTarget = false;
 
+            // a caption line for staged moments (hand-off, ride-off), shown without the run HUD
+            cine = Txt(canvasRt, "", 40, TextAnchor.UpperCenter, 0, -120, 360, 130, Yellow, true, 3); cine.font = italic; cine.supportRichText = true;
+            cine.resizeTextForBestFit = true; cine.resizeTextMaxSize = 44; cine.resizeTextMinSize = 18;
             BuildPlay(); BuildMenu(); BuildBrief(); BuildResults(); BuildShop(); BuildIntro();
         }
 
@@ -59,8 +63,7 @@ namespace Overtime
             var progBg = Img(p, new Color(0, 0, 0, 0.28f), pill, TextAnchor.UpperCenter, 0, -12, 0, 10); progBg.rectTransform.anchorMin = new Vector2(0.05f, 1); progBg.rectTransform.anchorMax = new Vector2(0.95f, 1); progBg.rectTransform.sizeDelta = new Vector2(0, 10);
             progFill = Img(progBg.rectTransform, Yellow, pill, TextAnchor.MiddleCenter, 0, 0, 0, 0); Stretch(progFill.rectTransform); progFill.rectTransform.anchorMax = new Vector2(0, 1);
             var coinPill = Img(p, new Color(0, 0, 0, 0.32f), pill, TextAnchor.UpperLeft, 14, -30, 104, 34);
-            Img(coinPill.rectTransform, Yellow, pill, TextAnchor.MiddleLeft, 5, 0, 24, 24);
-            Img(coinPill.rectTransform, new Color(1f, 0.62f, 0.05f), pill, TextAnchor.MiddleLeft, 10, 0, 14, 14);
+            Tock(coinPill.rectTransform, 5, 24);
             coins = Txt(coinPill.rectTransform, "0", 20, TextAnchor.MiddleLeft, 36, 0, 64, 30, Color.white, true);
             score = Txt(p, "0", 15, TextAnchor.UpperRight, -16, -36, 140, 22, new Color(1, 1, 1, 0.9f), true);
             label = Txt(p, "SECONDS LEFT", 13, TextAnchor.UpperCenter, 0, -66, 300, 18, Color.white, true);
@@ -88,7 +91,7 @@ namespace Overtime
                 powText[i] = Txt(pr, "", 13, TextAnchor.MiddleCenter, 0, 0, 96, 26, Ink, false);
                 powRow[i].SetActive(false);
             }
-            popup = Txt(p, "", 40, TextAnchor.MiddleCenter, 0, 150, 380, 100, Color.white, true, 3); Center(popup); popup.font = italic;
+            popup = Txt(p, "", 40, TextAnchor.MiddleCenter, 0, 150, 380, 100, Color.white, true, 3); Center(popup); popup.font = italic; popup.resizeTextForBestFit = true; popup.resizeTextMaxSize = 40; popup.resizeTextMinSize = 16; popup.rectTransform.sizeDelta = new Vector2(350, 110);
             var hintBg = Img(p, new Color(Ink.r, Ink.g, Ink.b, 0.86f), round, TextAnchor.LowerCenter, 0, 34, 344, 58);
             hint = Txt(hintBg.rectTransform, "", 18, TextAnchor.MiddleCenter, 0, 0, 0, 0, Color.white, false); Stretch(hint.rectTransform); hint.rectTransform.offsetMin = new Vector2(12, 4); hint.rectTransform.offsetMax = new Vector2(-12, -4);
         }
@@ -102,8 +105,7 @@ namespace Overtime
             var tag = Img(m, Red, round, TextAnchor.UpperCenter, 0, -150, 150, 36); tag.rectTransform.localRotation = Quaternion.Euler(0, 0, -4);
             Txt(tag.rectTransform, "EXPRESS", 24, TextAnchor.MiddleCenter, 0, 1, 150, 34, Color.white, true);
             var wp = Img(m, new Color(0, 0, 0, 0.4f), pill, TextAnchor.UpperCenter, 0, -200, 150, 38);
-            Img(wp.rectTransform, Yellow, pill, TextAnchor.MiddleLeft, 6, 0, 26, 26);
-            Img(wp.rectTransform, new Color(1f, 0.62f, 0.05f), pill, TextAnchor.MiddleLeft, 12, 0, 14, 14);
+            Tock(wp.rectTransform, 6, 26);
             wallet = Txt(wp.rectTransform, "0", 22, TextAnchor.MiddleLeft, 40, 0, 104, 32, Color.white, true);
             for (int i = 0; i < 6; i++)
             {
@@ -155,9 +157,9 @@ namespace Overtime
             shop = Panel("Shop"); var s = shop.GetComponent<RectTransform>();
             Shade(s, 0.6f);
             Txt(s, "GEAR SHOP", 46, TextAnchor.UpperCenter, 0, -50, 390, 56, Color.white, true, 3);
-            sNote = Txt(s, "Spend wages. Every piece changes how you run.", 14, TextAnchor.UpperCenter, 0, -104, 360, 20, Color.white, true);
+            sNote = Txt(s, "Spend Tocks. Every piece changes how you run.", 14, TextAnchor.UpperCenter, 0, -104, 360, 20, Color.white, true);
             var wp = Img(s, new Color(0, 0, 0, 0.4f), pill, TextAnchor.UpperCenter, 0, -130, 150, 38);
-            Img(wp.rectTransform, Yellow, pill, TextAnchor.MiddleLeft, 6, 0, 26, 26);
+            Tock(wp.rectTransform, 6, 26);
             sWallet = Txt(wp.rectTransform, "0", 22, TextAnchor.MiddleLeft, 40, 0, 104, 32, Color.white, true);
             for (int i = 0; i < 7; i++)
             {
@@ -181,6 +183,31 @@ namespace Overtime
         }
 
         // ───────── building blocks ─────────
+        /// <summary>The Tock icon: a gold hex token with a dark face and clock hands.</summary>
+        void Tock(RectTransform parent, float x, float size)
+        {
+            var o = Img(parent, Yellow, null, TextAnchor.MiddleLeft, x, 0, size, size); o.sprite = hex; o.raycastTarget = false;
+            var i = Img(o.rectTransform, new Color(0.16f, 0.09f, 0.02f), null, TextAnchor.MiddleCenter, 0, 0, size * 0.66f, size * 0.66f); i.sprite = hex; i.raycastTarget = false;
+            var h1 = Img(i.rectTransform, Color.white, null, TextAnchor.MiddleCenter, 0, size * 0.11f, size * 0.09f, size * 0.26f); h1.raycastTarget = false;
+            var h2 = Img(i.rectTransform, Color.white, null, TextAnchor.MiddleCenter, size * 0.08f, -size * 0.03f, size * 0.09f, size * 0.2f); h2.rectTransform.localRotation = Quaternion.Euler(0, 0, 62); h2.raycastTarget = false;
+        }
+
+        static Sprite HexSprite(int size)
+        {
+            var tex = new Texture2D(size, size, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp };
+            var px = new Color32[size * size]; float c = size / 2f, r = size / 2f - 1;
+            for (int y = 0; y < size; y++)
+                for (int x = 0; x < size; x++)
+                {
+                    float dx = Mathf.Abs(x + 0.5f - c), dy = Mathf.Abs(y + 0.5f - c);
+                    // pointy-top hexagon distance
+                    float d = Mathf.Max(dx, dx * 0.5f + dy * 0.8660254f);
+                    px[y * size + x] = new Color32(255, 255, 255, (byte)(Mathf.Clamp01(r * 0.8660254f - d + 0.5f) * 255));
+                }
+            tex.SetPixels32(px); tex.Apply();
+            return Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 100);
+        }
+
         static Sprite Rounded(int size, int radius)
         {
             var tex = new Texture2D(size, size, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear };
@@ -261,11 +288,13 @@ namespace Overtime
 
         public void Popup(string s, Color c, float dur = 0.75f) { popup.text = s; popupColor = c; popupT = dur; }
         public void Hint(string s) { hint.text = s; hintT = 3.4f; }
+        public void Cine(string s, Color c, float dur = 0.5f) { cine.text = s; cine.color = c; cineT = dur; }
         public void BumpClock() { clockBump = 1; }
         public void BumpCoins() { coinBump = 1; }
 
         public void Tick(float rdt)
         {
+            cineT -= rdt; { var cc = cine.color; cc.a = Mathf.Clamp01(cineT * 4); cine.color = cc; }
             popupT -= rdt; hintT -= rdt; clockBump = Mathf.Max(0, clockBump - rdt * 5); coinBump = Mathf.Max(0, coinBump - rdt * 7);
             var c = popupColor; c.a = Mathf.Clamp01(popupT * 4); popup.color = c;
             popup.rectTransform.localScale = Vector3.one * (1 + Mathf.Clamp01(popupT - 0.6f) * 1.2f);

@@ -42,7 +42,9 @@ Shader "Overtime/Fx"
                 else {
                     float sweep = frac(i.uv.y * 3.0 - _OTTime * 0.8);
                     float n = ot_vnoise(float2(i.uv.x * 14.0, i.uv.y * 6.0 - _OTTime * 2.0));
-                    a = (0.12 + 0.5 * smoothstep(0.7, 1.0, sweep) + 0.25 * n * (0.5 + 0.5 * sin(i.uv.x * 70.0))) * smoothstep(0.0, 0.08, i.uv.y) * 2.2;
+                    a = (0.12 + 0.5 * smoothstep(0.7, 1.0, sweep) + 0.25 * n * (0.5 + 0.5 * sin(i.uv.x * 70.0))) * smoothstep(0.0, 0.08, i.uv.y) * 0.55;
+                    // thin out as you run through it so the hand-off isn't washed in light
+                    a *= saturate((length(i.positionWS - _WorldSpaceCameraPos) - 4.0) / 14.0);
                     tint = _OTAccent.rgb;
                 }
                 return half4(tint * a, 1);

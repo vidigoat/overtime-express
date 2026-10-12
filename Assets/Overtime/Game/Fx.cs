@@ -29,6 +29,8 @@ namespace Overtime
             trail.widthCurve = AnimationCurve.Linear(0, 1, 1, 0.15f);
             trail.sharedMaterial = Mats.Fx(1, Color.white);
             trail.alignment = LineAlignment.View; trail.textureMode = LineTextureMode.Stretch;
+            // the ribbon read as a hazy wedge behind the courier at phone size; his lit soles and sparks carry the motion instead
+            trail.enabled = false;
             var tgGrad = new Gradient(); tgGrad.SetKeys(new[] { new GradientColorKey(Color.white, 0), new GradientColorKey(Color.white, 1) }, new[] { new GradientAlphaKey(1, 0), new GradientAlphaKey(0, 1) });
             trail.colorGradient = tgGrad;
         }
