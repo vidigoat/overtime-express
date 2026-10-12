@@ -1,0 +1,451 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 953210f5c347e4dada36158a77958491, type: 3}
+  m_Name: Art
+  m_EditorClassIdentifier: Assembly-CSharp::Overtime.ArtLibrary
+  models:
+  - name: Barbarian
+    prefab: {fileID: 8771091787928289351, guid: ca77df54514cb4ad48d24e1f2d0d44f4, type: 3}
+  - name: Knight
+    prefab: {fileID: 8771091787928289351, guid: d3d53e82b56cd4395af14771bb2fefa9, type: 3}
+  - name: Mage
+    prefab: {fileID: 8771091787928289351, guid: 68c73f261a21a48a8b9d58007c4cb181, type: 3}
+  - name: Rogue
+    prefab: {fileID: 8771091787928289351, guid: ec5d002a90b20423fb7bcb8cd66b9a72, type: 3}
+  - name: Rogue_Hooded
+    prefab: {fileID: 8771091787928289351, guid: d39e89d42936e4a63b5e6b8d584b52f3, type: 3}
+  - name: base
+    prefab: {fileID: -8910324331383621393, guid: 258bfe609df28452984c056b5ee0365b, type: 3}
+  - name: bench
+    prefab: {fileID: 445865551049753782, guid: 27dc1596b138f41f3b8cbd5c648e6f08, type: 3}
+  - name: box_A
+    prefab: {fileID: 2886421840696400569, guid: 105abe4f8be59404bb2d2b96eee47785, type: 3}
+  - name: box_B
+    prefab: {fileID: 4543022469912668003, guid: f699870d609244a5198ef4051b3820af, type: 3}
+  - name: building_A
+    prefab: {fileID: 2881107864545597058, guid: c58c45e8a770e4d6baa9c7a7ba8dd53d, type: 3}
+  - name: building_A_withoutBase
+    prefab: {fileID: -4411553084806569990, guid: 5c1e8473c70e84725813a7a79c9d809e, type: 3}
+  - name: building_B
+    prefab: {fileID: 4348896224929729458, guid: 8063025249d074dc89c939b0621b4344, type: 3}
+  - name: building_B_withoutBase
+    prefab: {fileID: 1794625292755503992, guid: 765ba8e61fff44a69a98353c2a7f0ebf, type: 3}
+  - name: building_C
+    prefab: {fileID: -1146805060395983920, guid: 74a5a1782b3ae4d65a39ff239d94365e, type: 3}
+  - name: building_C_withoutBase
+    prefab: {fileID: 8577796508236025580, guid: 12b067e2def5646a8ac4377a6b0ce4a1, type: 3}
+  - name: building_D
+    prefab: {fileID: 1276122941285695477, guid: 00a26e8b4abbb4446acbf431fd831ac4, type: 3}
+  - name: building_D_withoutBase
+    prefab: {fileID: 8438789319153153275, guid: f52827c620e1b464780a9b280341ba08, type: 3}
+  - name: building_E
+    prefab: {fileID: 7275008927877250189, guid: f6dd032115bcf4203912c799d6be1e21, type: 3}
+  - name: building_E_withoutBase
+    prefab: {fileID: 8803375680840626200, guid: 4da1e9c0e4ce14aa6a5d50d237a20812, type: 3}
+  - name: building_F
+    prefab: {fileID: 483336697874821119, guid: 16b791e380ec643a7b4395cb47ab99ee, type: 3}
+  - name: building_F_withoutBase
+    prefab: {fileID: 4119667063388727511, guid: d31f29ed22a8b46d58c334cffbfa0fe7, type: 3}
+  - name: building_G
+    prefab: {fileID: -7729003999400098236, guid: 18fd9460121e34667a8c3358b6f24799, type: 3}
+  - name: building_G_withoutBase
+    prefab: {fileID: -8861815137237711076, guid: f89ccb7405bca46f788a85d876b5c9ad, type: 3}
+  - name: building_H
+    prefab: {fileID: 4885604892608435557, guid: 1c0f439494de14a4da77c9c4bedd498e, type: 3}
+  - name: building_H_withoutBase
+    prefab: {fileID: -3314850802365236334, guid: 7c403c94cf3854cac9aafa48b3ee158f, type: 3}
+  - name: bush
+    prefab: {fileID: 651545735946573525, guid: ec11ec877d4204441a618fcb56fff92d, type: 3}
+  - name: car_hatchback
+    prefab: {fileID: 9174842251837059102, guid: ac64dea29d10c47b7ac585408cd75158, type: 3}
+  - name: car_police
+    prefab: {fileID: 3159664388606574029, guid: 349dc1533ccf54131be58b02eb7ebe04, type: 3}
+  - name: car_sedan
+    prefab: {fileID: 5031284388041740365, guid: ae084ee83a3074a5a91004505e1f9ece, type: 3}
+  - name: car_stationwagon
+    prefab: {fileID: 8922327601361123562, guid: 01b49b9a0a1294a7ca9ccc94d80beec7, type: 3}
+  - name: car_taxi
+    prefab: {fileID: -1548320291464841141, guid: 46337914336bf49ce8cc7003a68dd2d1, type: 3}
+  - name: dumpster
+    prefab: {fileID: -7590553855253038240, guid: 90273651dcc284992b267314518027b2, type: 3}
+  - name: firehydrant
+    prefab: {fileID: 504927703624238112, guid: 2576ac04c32bf479990ae2ede4d7f0a4, type: 3}
+  - name: road_corner
+    prefab: {fileID: -4198997020770833828, guid: cbe44320d17024ee6af730469e1cf78a, type: 3}
+  - name: road_corner_curved
+    prefab: {fileID: 6823167173340918639, guid: a1f5a05bb8f8c42a5b1ab2192c0865a4, type: 3}
+  - name: road_junction
+    prefab: {fileID: -1211505290066399528, guid: 9a31f6288fa484a278645357a97a818b, type: 3}
+  - name: road_straight
+    prefab: {fileID: 6033023502341910922, guid: 4ae1f8e5aa72a4e7bb2e27f73af8a7c6, type: 3}
+  - name: road_straight_crossing
+    prefab: {fileID: 1054945658475155981, guid: c68eb8cab4b00483980f3e036be6e97c, type: 3}
+  - name: road_tsplit
+    prefab: {fileID: -1887139858753117226, guid: cbbbd13b5660e404480c55106c4f1dac, type: 3}
+  - name: streetlight
+    prefab: {fileID: 3813465655787204635, guid: 3c3d62c8c47ef4d79b70cfa4fb3a24f7, type: 3}
+  - name: trafficlight_A
+    prefab: {fileID: 7357366253792243180, guid: 685baf1a8ae42463b91a4579bf6ee901, type: 3}
+  - name: trafficlight_B
+    prefab: {fileID: -827203242413872828, guid: a6cde363e8bac43a2a8118f48ecec545, type: 3}
+  - name: trafficlight_C
+    prefab: {fileID: -5341700122228071464, guid: 7f0e6cc98ac7a4c7e9e55e95096adf29, type: 3}
+  - name: trash_A
+    prefab: {fileID: -8119620390166010454, guid: b3167f468c29f49de8670cfd7d13687e, type: 3}
+  - name: trash_B
+    prefab: {fileID: -7133109853670491979, guid: bb82d4383b3a04f4f80346050eddd2ca, type: 3}
+  - name: watertower
+    prefab: {fileID: 843589269563428485, guid: cb0f659dfa051417082be57e2b7e655c, type: 3}
+  - name: crate_buns
+    prefab: {fileID: -4289372136914753094, guid: 23fbeae2828f541ecaf378a580cbf1cf, type: 3}
+  - name: crate_carrots
+    prefab: {fileID: 6064983538960915441, guid: bf8098a67990f4caf8a9dffa568c0678, type: 3}
+  - name: crate_cheese
+    prefab: {fileID: -8067170512264133452, guid: 8cd5633ae68024eab96bbe86f2c87f62, type: 3}
+  - name: crate_ham
+    prefab: {fileID: -1346899958225944540, guid: 17eafa7342d8f4f78b4093dcc8768210, type: 3}
+  - name: crate_lettuce
+    prefab: {fileID: 4101468953639871273, guid: 0c8088516e18f487d947b92ccb6c31c7, type: 3}
+  - name: crate_lid
+    prefab: {fileID: -8315038506891987303, guid: b562782fd104547c5b070a11443e06c0, type: 3}
+  - name: crate_onions
+    prefab: {fileID: -4882320139274050146, guid: e56e59f99c0964265a312c63ac6b5b28, type: 3}
+  - name: crate_potatoes
+    prefab: {fileID: 9135525814904625897, guid: 28d0be02890744300b9b7496753f31f7, type: 3}
+  - name: crate_steak
+    prefab: {fileID: -3928673641649845211, guid: f730cb29c6a1345ba839dd9e5990f2ea, type: 3}
+  - name: crate_tomatoes
+    prefab: {fileID: 2888570896541776804, guid: 248e44d4fef4e4a13b53feacf567a3a2, type: 3}
+  - name: food_burger
+    prefab: {fileID: -6990916092872685451, guid: e3c77b4e59bf8444eb43fb7c27de0e8d, type: 3}
+  - name: food_dinner
+    prefab: {fileID: -7450893290173047124, guid: 0eae3e15c460b4919accad2a7821ee8c, type: 3}
+  - name: food_ingredient_bun
+    prefab: {fileID: -5029901898454683524, guid: a2973b8fda3f849359f2a7b65461c1b9, type: 3}
+  - name: food_ingredient_bun_bottom
+    prefab: {fileID: 1706333192158952047, guid: 152ce3a543ddf453487a2cfa6278d6a4, type: 3}
+  - name: food_ingredient_bun_top
+    prefab: {fileID: 7702627770525004648, guid: 87ed93120d9e94db9858ad3db58af844, type: 3}
+  - name: food_ingredient_burger_cooked
+    prefab: {fileID: -5088819991717297716, guid: 573919ef8206f40918454fcfb3d4a415, type: 3}
+  - name: food_ingredient_burger_trash
+    prefab: {fileID: 3001789625773237220, guid: 7c6f8d381d2cc48189a070e9ec72dd0a, type: 3}
+  - name: food_ingredient_burger_uncooked
+    prefab: {fileID: -8751070931536483399, guid: 195eca80f411745639fe76eb9622e044, type: 3}
+  - name: food_ingredient_carrot
+    prefab: {fileID: 2191184590781084249, guid: 0e2d82feed9d042a0b35427267ab4414, type: 3}
+  - name: food_ingredient_carrot_chopped
+    prefab: {fileID: -789363631919208074, guid: 1ad3acc1dea9e4aac905475c76d01019, type: 3}
+  - name: food_ingredient_carrot_pieces
+    prefab: {fileID: 7592293007186674201, guid: 8222617f8bd454d1a9224f4c3e5d28d7, type: 3}
+  - name: food_ingredient_cheese
+    prefab: {fileID: -2311363727081955975, guid: 3cca1a3ca5a764e5a8262b0718cf637e, type: 3}
+  - name: food_ingredient_cheese_chopped
+    prefab: {fileID: 7585804931092952609, guid: 0246f84475d57426d9bcc0d0bb2ec1d0, type: 3}
+  - name: food_ingredient_cheese_slice
+    prefab: {fileID: -6107617167050965775, guid: e14e5e24d4cf64c138e71d40c605233c, type: 3}
+  - name: food_ingredient_ham
+    prefab: {fileID: 7283771988623833535, guid: 63b691368c6e44481902407a5adcd4c0, type: 3}
+  - name: food_ingredient_ham_cooked
+    prefab: {fileID: 779310529510015302, guid: 1ab81708f871b40f09a325d5fd624ea4, type: 3}
+  - name: food_ingredient_ham_trash
+    prefab: {fileID: -1594338146342990363, guid: 4cc6d67f6f0e44890bd11fe5cd50e743, type: 3}
+  - name: food_ingredient_lettuce
+    prefab: {fileID: -8696195151362944830, guid: b3cf10c78c41047afb459e7a7a9d1cdf, type: 3}
+  - name: food_ingredient_lettuce_chopped
+    prefab: {fileID: -8757754447499987575, guid: 0052dea8258a549779f7fa14e92a9f57, type: 3}
+  - name: food_ingredient_lettuce_slice
+    prefab: {fileID: -8745436867996844552, guid: a640e64e0897643729cda14866cdc8ed, type: 3}
+  - name: food_ingredient_onion
+    prefab: {fileID: -6797376303389318578, guid: 35000b40535444511a85a2172896d7ea, type: 3}
+  - name: food_ingredient_onion_chopped
+    prefab: {fileID: 2857826869884110, guid: b01c0997380144dfdb3271fd7c327677, type: 3}
+  - name: food_ingredient_onion_rings
+    prefab: {fileID: 5328855170983527208, guid: a2b51bd7786844e629c511078b2933be, type: 3}
+  - name: food_ingredient_potato
+    prefab: {fileID: 1267051209084220443, guid: c9bdc332b7b904e7d90a6325c65d70ac, type: 3}
+  - name: food_ingredient_potato_chopped
+    prefab: {fileID: 5954142973916485471, guid: 6889e7be8a5f544168df2a48abd3c312, type: 3}
+  - name: food_ingredient_potato_mashed
+    prefab: {fileID: 876520764275012931, guid: f63b98681e43b4850b981aa1c4ad4a72, type: 3}
+  - name: food_ingredient_steak
+    prefab: {fileID: 441286828473167113, guid: 27e730eaa649941c9b4169601d3663d4, type: 3}
+  - name: food_ingredient_steak_pieces
+    prefab: {fileID: -9059745592948277334, guid: 21162cd81d0204021a36985094c02b87, type: 3}
+  - name: food_ingredient_tomato
+    prefab: {fileID: -6447022423592114625, guid: e4256d7607ddb4511acfb4dc2cbc7808, type: 3}
+  - name: food_ingredient_tomato_slice
+    prefab: {fileID: -2739930441190082521, guid: d25f9abb2f3914a6aad991fde7e1a717, type: 3}
+  - name: food_ingredient_tomato_slices
+    prefab: {fileID: -5921572623022919011, guid: ceb976be56ed64baaa95bf7dc95ea365, type: 3}
+  - name: food_ingredient_vegetableburger_cooked
+    prefab: {fileID: -7307222821673008545, guid: 3480ddd711ac5494d813d875d4adc320, type: 3}
+  - name: food_ingredient_vegetableburger_uncooked
+    prefab: {fileID: 5821830801452023822, guid: 70fb49f5543ff4b2eb70b5c15d270379, type: 3}
+  - name: food_stew
+    prefab: {fileID: 9098448608389007943, guid: 9c7e0bcbfcb0f475a83aed23230c93ce, type: 3}
+  - name: food_vegetableburger
+    prefab: {fileID: -274746470587145582, guid: 0a6899c18dafe4ac084ef53840423391, type: 3}
+  - name: plate
+    prefab: {fileID: -585081434788294580, guid: 5ea897182329347fdb07e23b126eabd6, type: 3}
+  - name: plate_dirty
+    prefab: {fileID: 2161589619784875226, guid: e425ad9704434486a93ec9b68c61fe4b, type: 3}
+  - name: plate_small
+    prefab: {fileID: 931105371482859770, guid: f136200b4fedb49ebaf6c64d54498ede, type: 3}
+  - name: Barrel_A
+    prefab: {fileID: -1469697845516732904, guid: 548f7a6932c394b83899de301d5ce7a9, type: 3}
+  - name: Barrel_B
+    prefab: {fileID: -6942763657080081642, guid: 9516a8d430aab4c9d89e95e5b8aecd24, type: 3}
+  - name: Barrel_C
+    prefab: {fileID: 7200875532902662989, guid: 5d529dae937d44c9a9195e8443096bd5, type: 3}
+  - name: Box_A
+    prefab: {fileID: 562110256965993662, guid: ae81405c141344c29831000c704adb40, type: 3}
+  - name: Box_B
+    prefab: {fileID: -7719090157406319086, guid: 3958b44a7db294f45916ec202d33b5cf, type: 3}
+  - name: Box_C
+    prefab: {fileID: 6938567716316458018, guid: ce48faa33ee6c45cab1bc021a08ded08, type: 3}
+  - name: Can_A
+    prefab: {fileID: -4415290537114536896, guid: 0b6d363c649be4397a0310154aed40d9, type: 3}
+  - name: Can_B
+    prefab: {fileID: 8131039007152444570, guid: fa0aeaa4ac4b445388fcc0fb34a72470, type: 3}
+  - name: Coin_A
+    prefab: {fileID: 6824218725437740790, guid: 66a132c4f2ae248d6be8d3003070c12f, type: 3}
+  - name: Coin_B
+    prefab: {fileID: 258640467603241523, guid: fc6d2916786014f93965fd6e4dc9ca83, type: 3}
+  - name: Coin_C
+    prefab: {fileID: -3149332285142699644, guid: 11324f71147794661b4501b89482ef39, type: 3}
+  - name: Cube_Prototype_Large_A
+    prefab: {fileID: -1016293981389937647, guid: 0b1878436e0a949248d218375964a99b, type: 3}
+  - name: Cube_Prototype_Large_B
+    prefab: {fileID: -6056457302257315394, guid: 000a725c050e24f57b689ea53d964ab1, type: 3}
+  - name: Cube_Prototype_Small
+    prefab: {fileID: -5085925081677209639, guid: 6ae78db5c9e3f4176aeee2d6afa78d10, type: 3}
+  - name: Door_A
+    prefab: {fileID: 3180838025826637482, guid: 99785875ed7924e0d92bd900c50cee71, type: 3}
+  - name: Door_A_Decorated
+    prefab: {fileID: -3391788390997700631, guid: a3e15c37e07aa48d1b7c55e5cecb0c70, type: 3}
+  - name: Door_B
+    prefab: {fileID: 5848615910333281944, guid: 88c5d05ff7e4145ddb25c3b7c9a0b9c1, type: 3}
+  - name: Dummy_Base
+    prefab: {fileID: -6339862918710067309, guid: 26fef9bbd0acb4d9d9ff62e637baab00, type: 3}
+  - name: Floor
+    prefab: {fileID: -5723278873840671018, guid: d5a1b619d1ff34cb8b4c1c0175514c0d, type: 3}
+  - name: Floor_Dirt
+    prefab: {fileID: -2100814429757991461, guid: 6754e968ff70d4072b2602bdb598b6b6, type: 3}
+  - name: Floor_Prototype
+    prefab: {fileID: -6952093460994362877, guid: 7802a68d4ae4f4322aa7b06b0b621ebe, type: 3}
+  - name: Pallet_Large
+    prefab: {fileID: 8871925527152119851, guid: 48ae3bcce07e94722b2da03fb8facd92, type: 3}
+  - name: Pallet_Small
+    prefab: {fileID: 5775774952418078228, guid: f137471e302974808ba27a905e63c907, type: 3}
+  - name: Pallet_Small_Decorated_A
+    prefab: {fileID: -5685351047026386471, guid: 3416663e1f920404491b6bfd6e5fcea2, type: 3}
+  - name: Pallet_Small_Decorated_B
+    prefab: {fileID: -2726144017288228905, guid: 0a0913c5eeaaa414eae7b3783c14703d, type: 3}
+  - name: Pillar_A
+    prefab: {fileID: -9136466340744639288, guid: 534790b171d92485ea1ae64dc45b35a8, type: 3}
+  - name: Pillar_B
+    prefab: {fileID: -2809229817684218362, guid: 26139e831baf04262bd1b69781904de0, type: 3}
+  - name: Primitive_Beam
+    prefab: {fileID: 1455979521323103191, guid: 04bb030cba62845b8b5fbe2527c2a35a, type: 3}
+  - name: Primitive_Cube
+    prefab: {fileID: 507615054075335402, guid: 1ef9edf46477940aa8fbaa5f777fab4b, type: 3}
+  - name: Primitive_Cube_Small
+    prefab: {fileID: 189629846289025603, guid: ece46f1f1808a4c3395bce6bc867fcd8, type: 3}
+  - name: Primitive_Doorway
+    prefab: {fileID: 4333747159021232860, guid: 8bc91ae485c4b43d28b37d9208514812, type: 3}
+  - name: Primitive_Floor
+    prefab: {fileID: 4948655016840863086, guid: a759011ea0a984fecba45c2e28defc4c, type: 3}
+  - name: Primitive_Floor_Hole
+    prefab: {fileID: 1120992888629771906, guid: 074e0b8c6cbb74431a208f034a770989, type: 3}
+  - name: Primitive_Pillar
+    prefab: {fileID: -3469104302743355899, guid: 03fa88024b870404f9a6036911e4a918, type: 3}
+  - name: Primitive_Slope
+    prefab: {fileID: -4646505964806773284, guid: 134d6a779f62c4d61970fdaa839102dc, type: 3}
+  - name: Primitive_Slope_Half
+    prefab: {fileID: 3434174019127232731, guid: cc49153933a364d9cb96ff4cead415c7, type: 3}
+  - name: Primitive_Slope_Half_InnerCorner
+    prefab: {fileID: -2338482614992044883, guid: 73572eb232462468aa3235a9ceb1735d, type: 3}
+  - name: Primitive_Slope_Half_OuterCorner
+    prefab: {fileID: -4935570937679812827, guid: 3332394467d4945e29b04c59a9ad5ad7, type: 3}
+  - name: Primitive_Slope_InnerCorner
+    prefab: {fileID: -4448078426068192405, guid: 82177c31f1093421cae4d7aefe89123c, type: 3}
+  - name: Primitive_Slope_OuterCorner
+    prefab: {fileID: 4106795727228805141, guid: a97289fb4fd81470bb92cc244d661ffa, type: 3}
+  - name: Primitive_Stairs
+    prefab: {fileID: -8419138437477166601, guid: d0516400d9b334a54a00d73a901c3dac, type: 3}
+  - name: Primitive_Stairs_Half
+    prefab: {fileID: -2048203988035288547, guid: 7870bae6747ca442abeea5a49779f018, type: 3}
+  - name: Primitive_Wall
+    prefab: {fileID: -2233941651227606723, guid: 72cedbe44ada84ba8b77afe1599f7495, type: 3}
+  - name: Primitive_Wall_Half
+    prefab: {fileID: 8560107639693358534, guid: b8f595cce297c4ef6af1af68b678f853, type: 3}
+  - name: Primitive_Wall_OpenCorner
+    prefab: {fileID: 1594797168796779830, guid: d83853ddab8dd46fe986dc5e3bc0176c, type: 3}
+  - name: Primitive_Wall_Short
+    prefab: {fileID: -8878003349385378495, guid: 456a6a22487104bc99e0b44736f01d71, type: 3}
+  - name: Primitive_Wall_Slope
+    prefab: {fileID: -7388081782689522384, guid: f45fcd06a68354e3c883e6b0df1e68a0, type: 3}
+  - name: Primitive_Window
+    prefab: {fileID: -5614106607926622430, guid: f0365da02417f4d88bf544c370e972e5, type: 3}
+  - name: table_medium
+    prefab: {fileID: -1569587375514432810, guid: 3ce359ff0eee74df4bbda373998ae099, type: 3}
+  - name: table_medium_Decorated
+    prefab: {fileID: 5304050972093389021, guid: 08a5d8662abae4b75bb724e5ccc6793c, type: 3}
+  - name: table_medium_long
+    prefab: {fileID: -289058785222540399, guid: 5578e7763c76c4c3ba5d6eaa0414f5cf, type: 3}
+  - name: target
+    prefab: {fileID: -4546113203989503706, guid: e5b87a0959bbb4681808a1bdcfc902c0, type: 3}
+  - name: target_pieces_A
+    prefab: {fileID: 2599203687083916291, guid: 33d2aeb13b35d4dd292309a4c06c9063, type: 3}
+  - name: target_pieces_B
+    prefab: {fileID: 1615862505622891485, guid: 3e2857144099c477ea98693b86f42906, type: 3}
+  - name: target_pieces_C
+    prefab: {fileID: -8398319892474021910, guid: 56daf136e814543d8889902485cd2212, type: 3}
+  - name: target_pieces_D
+    prefab: {fileID: -568485056053875902, guid: 2b36dd0a724f844109a57edbb4b9e61b, type: 3}
+  - name: target_pieces_E
+    prefab: {fileID: -4968748300864634351, guid: 9f57ebe67cb2a47bf9dc3e391afedce1, type: 3}
+  - name: target_pieces_F
+    prefab: {fileID: 2716427146277971812, guid: 991e6c70a24e940a882e444556ffd0f5, type: 3}
+  - name: target_small
+    prefab: {fileID: 2955382087272456274, guid: 18013d6c383b142adacadcd729be67dd, type: 3}
+  - name: target_stand_A
+    prefab: {fileID: 6257149097865886397, guid: 88307060c89c84815a9309d143cbc657, type: 3}
+  - name: target_stand_A_Decorated
+    prefab: {fileID: -6521770841983559317, guid: 50cd6e90eb4614b13aa300d129a9510d, type: 3}
+  - name: target_stand_B
+    prefab: {fileID: -5356595896362822763, guid: ef20834307c1f4176a86f47f0243255f, type: 3}
+  - name: target_wall_large_A
+    prefab: {fileID: 5739791883537562340, guid: a24a2d636f53e4fab8f216a755936087, type: 3}
+  - name: target_wall_large_B
+    prefab: {fileID: 7460996031212744881, guid: 3a40b5d40419348e5b62f834725aa2c7, type: 3}
+  - name: target_wall_small
+    prefab: {fileID: -6145096413454377179, guid: d6cd37aea1fdc4a4681e22dc722c0760, type: 3}
+  - name: Wall
+    prefab: {fileID: 6902758145205587502, guid: c6d6565396e484b5c9c4957600ab7aa4, type: 3}
+  - name: Wall_Decorated
+    prefab: {fileID: -1838192724270986185, guid: 0e0b7394b70cf4651818bd25eef36992, type: 3}
+  - name: Wall_Doorway
+    prefab: {fileID: 5535859080579664531, guid: 57ee18b03077a4039bcfec0544dff164, type: 3}
+  - name: Wall_Half
+    prefab: {fileID: 3367484052230559715, guid: c762e5b1d46d848468bf9d195b365fa6, type: 3}
+  - name: Wall_Target
+    prefab: {fileID: -173298056686599074, guid: d65f6814ddcf4412792b9d07eff52bff, type: 3}
+  - name: Wall_Window_Closed
+    prefab: {fileID: 631534132217715402, guid: e6e098772dc1a4dc4a0a5a7ac87ba285, type: 3}
+  - name: Wall_Window_Open
+    prefab: {fileID: -2627723728455599533, guid: 9ad5f9d81406c4aadb4eddb55fab32da, type: 3}
+  - name: Casual
+    prefab: {fileID: 919132149155446097, guid: c122dec00ed134f37934e9b03e2e0d4f, type: 3}
+  - name: Punk
+    prefab: {fileID: 919132149155446097, guid: 0c5225510712c4ddea7c4a0a4ea819a7, type: 3}
+  - name: PunkF
+    prefab: {fileID: 919132149155446097, guid: 53de4bd3230eb40c098fda3529e38723, type: 3}
+  - name: SciFi
+    prefab: {fileID: 919132149155446097, guid: 1a0f1c9fcac1c4a26b980c899a170c56, type: 3}
+  - name: Swat
+    prefab: {fileID: 919132149155446097, guid: 71f92885afb6b4a10a44dd9841ae7073, type: 3}
+  - name: Worker
+    prefab: {fileID: 919132149155446097, guid: 4892497c0fe10494ab1ddd49ab57461f, type: 3}
+  - name: Courier
+    prefab: {fileID: 919132149155446097, guid: 56d182981ba1f4d6eb22810784cdb6cd, type: 3}
+  clips:
+  - {fileID: -9094835232657333338, guid: d106d952eaf154968ac918f7c6f9711f, type: 3}
+  - {fileID: -8349492526526354690, guid: d106d952eaf154968ac918f7c6f9711f, type: 3}
+  - {fileID: -7788140712200663775, guid: d106d952eaf154968ac918f7c6f9711f, type: 3}
+  - {fileID: -6811081637106142684, guid: d106d952eaf154968ac918f7c6f9711f, type: 3}
+  - {fileID: -6520880558266426542, guid: d106d952eaf154968ac918f7c6f9711f, type: 3}
+  - {fileID: -6459315712502406762, guid: d106d952eaf154968ac918f7c6f9711f, type: 3}
+  - {fileID: -6141942375509812306, guid: d106d952eaf154968ac918f7c6f9711f, type: 3}
+  - {fileID: -5702386497210898798, guid: d106d952eaf154968ac918f7c6f9711f, type: 3}
+  - {fileID: -5237871509690145260, guid: d106d952eaf154968ac918f7c6f9711f, type: 3}
+  - {fileID: -4991030246267938671, guid: d106d952eaf154968ac918f7c6f9711f, type: 3}
+  - {fileID: -4143002631956505332, guid: d106d952eaf154968ac918f7c6f9711f, type: 3}
+  - {fileID: -3733343338115785452, guid: d106d952eaf154968ac918f7c6f9711f, type: 3}
+  - {fileID: -3670792985097887251, guid: d106d952eaf154968ac918f7c6f9711f, type: 3}
+  - {fileID: -3667675768739571939, guid: d106d952eaf154968ac918f7c6f9711f, type: 3}
+  - {fileID: -3474641802195600669, guid: d106d952eaf154968ac918f7c6f9711f, type: 3}
+  - {fileID: -2547592662905567392, guid: d106d952eaf154968ac918f7c6f9711f, type: 3}
+  - {fileID: -2440698234662215085, guid: d106d952eaf154968ac918f7c6f9711f, type: 3}
+  - {fileID: -2411196193671932334, guid: d106d952eaf154968ac918f7c6f9711f, type: 3}
+  - {fileID: -2168029645262303166, guid: d106d952eaf154968ac918f7c6f9711f, type: 3}
+  - {fileID: -1229897029741140301, guid: d106d952eaf154968ac918f7c6f9711f, type: 3}
+  - {fileID: -1139191427167748907, guid: d106d952eaf154968ac918f7c6f9711f, type: 3}
+  - {fileID: -1081009809623236876, guid: d106d952eaf154968ac918f7c6f9711f, type: 3}
+  - {fileID: -720027922617826980, guid: d106d952eaf154968ac918f7c6f9711f, type: 3}
+  - {fileID: -542467222308775866, guid: d106d952eaf154968ac918f7c6f9711f, type: 3}
+  - {fileID: -359718019515549578, guid: d106d952eaf154968ac918f7c6f9711f, type: 3}
+  - {fileID: 125067164718539214, guid: d106d952eaf154968ac918f7c6f9711f, type: 3}
+  - {fileID: 351079005376839566, guid: d106d952eaf154968ac918f7c6f9711f, type: 3}
+  - {fileID: 670302272868737125, guid: d106d952eaf154968ac918f7c6f9711f, type: 3}
+  - {fileID: 821931060936439371, guid: d106d952eaf154968ac918f7c6f9711f, type: 3}
+  - {fileID: 1038164469866789310, guid: d106d952eaf154968ac918f7c6f9711f, type: 3}
+  - {fileID: 1237075774167146373, guid: d106d952eaf154968ac918f7c6f9711f, type: 3}
+  - {fileID: 2353485320335845448, guid: d106d952eaf154968ac918f7c6f9711f, type: 3}
+  - {fileID: 3380278862377279749, guid: d106d952eaf154968ac918f7c6f9711f, type: 3}
+  - {fileID: 3422808464001628918, guid: d106d952eaf154968ac918f7c6f9711f, type: 3}
+  - {fileID: 3552131155159585165, guid: d106d952eaf154968ac918f7c6f9711f, type: 3}
+  - {fileID: 4681931746348046975, guid: d106d952eaf154968ac918f7c6f9711f, type: 3}
+  - {fileID: 4745122639478017833, guid: d106d952eaf154968ac918f7c6f9711f, type: 3}
+  - {fileID: 4925837963642883786, guid: d106d952eaf154968ac918f7c6f9711f, type: 3}
+  - {fileID: 5392199943384288987, guid: d106d952eaf154968ac918f7c6f9711f, type: 3}
+  - {fileID: 5758902066565541324, guid: d106d952eaf154968ac918f7c6f9711f, type: 3}
+  - {fileID: 5975904512783252730, guid: d106d952eaf154968ac918f7c6f9711f, type: 3}
+  - {fileID: 6796328226071078816, guid: d106d952eaf154968ac918f7c6f9711f, type: 3}
+  - {fileID: 7048085787364894862, guid: d106d952eaf154968ac918f7c6f9711f, type: 3}
+  - {fileID: 8050112828269365305, guid: d106d952eaf154968ac918f7c6f9711f, type: 3}
+  - {fileID: 8324161637117445193, guid: d106d952eaf154968ac918f7c6f9711f, type: 3}
+  - {fileID: 8641533986716418156, guid: d106d952eaf154968ac918f7c6f9711f, type: 3}
+  - {fileID: -9126102581851218018, guid: 56d182981ba1f4d6eb22810784cdb6cd, type: 3}
+  - {fileID: -8073916434604345353, guid: 56d182981ba1f4d6eb22810784cdb6cd, type: 3}
+  - {fileID: -8061687084165900903, guid: 56d182981ba1f4d6eb22810784cdb6cd, type: 3}
+  - {fileID: -7816163768055700239, guid: 56d182981ba1f4d6eb22810784cdb6cd, type: 3}
+  - {fileID: -7192042517891519836, guid: 56d182981ba1f4d6eb22810784cdb6cd, type: 3}
+  - {fileID: -7062361950610221846, guid: 56d182981ba1f4d6eb22810784cdb6cd, type: 3}
+  - {fileID: -6793541716566796758, guid: 56d182981ba1f4d6eb22810784cdb6cd, type: 3}
+  - {fileID: -5566208886993524023, guid: 56d182981ba1f4d6eb22810784cdb6cd, type: 3}
+  - {fileID: -4514217109003146267, guid: 56d182981ba1f4d6eb22810784cdb6cd, type: 3}
+  - {fileID: -4234491588545506125, guid: 56d182981ba1f4d6eb22810784cdb6cd, type: 3}
+  - {fileID: -3840084151542393336, guid: 56d182981ba1f4d6eb22810784cdb6cd, type: 3}
+  - {fileID: -3620764259951660000, guid: 56d182981ba1f4d6eb22810784cdb6cd, type: 3}
+  - {fileID: -3608273057025826555, guid: 56d182981ba1f4d6eb22810784cdb6cd, type: 3}
+  - {fileID: -3253842769541063390, guid: 56d182981ba1f4d6eb22810784cdb6cd, type: 3}
+  - {fileID: -2760357578015435623, guid: 56d182981ba1f4d6eb22810784cdb6cd, type: 3}
+  - {fileID: -2044582983327672346, guid: 56d182981ba1f4d6eb22810784cdb6cd, type: 3}
+  - {fileID: -1662512729948635066, guid: 56d182981ba1f4d6eb22810784cdb6cd, type: 3}
+  - {fileID: -1624735322513258398, guid: 56d182981ba1f4d6eb22810784cdb6cd, type: 3}
+  - {fileID: -209083552512460135, guid: 56d182981ba1f4d6eb22810784cdb6cd, type: 3}
+  - {fileID: 543990450412311274, guid: 56d182981ba1f4d6eb22810784cdb6cd, type: 3}
+  - {fileID: 937510309337268382, guid: 56d182981ba1f4d6eb22810784cdb6cd, type: 3}
+  - {fileID: 938527645004508068, guid: 56d182981ba1f4d6eb22810784cdb6cd, type: 3}
+  - {fileID: 1090947340732559904, guid: 56d182981ba1f4d6eb22810784cdb6cd, type: 3}
+  - {fileID: 1678460618773446439, guid: 56d182981ba1f4d6eb22810784cdb6cd, type: 3}
+  - {fileID: 2241212333087754889, guid: 56d182981ba1f4d6eb22810784cdb6cd, type: 3}
+  - {fileID: 2348659048428599234, guid: 56d182981ba1f4d6eb22810784cdb6cd, type: 3}
+  - {fileID: 2769738837718337441, guid: 56d182981ba1f4d6eb22810784cdb6cd, type: 3}
+  - {fileID: 2903320853443471174, guid: 56d182981ba1f4d6eb22810784cdb6cd, type: 3}
+  - {fileID: 3024899659199419769, guid: 56d182981ba1f4d6eb22810784cdb6cd, type: 3}
+  - {fileID: 3179879809524173460, guid: 56d182981ba1f4d6eb22810784cdb6cd, type: 3}
+  - {fileID: 3625414872004886998, guid: 56d182981ba1f4d6eb22810784cdb6cd, type: 3}
+  - {fileID: 4220803932214118631, guid: 56d182981ba1f4d6eb22810784cdb6cd, type: 3}
+  - {fileID: 4786625530542965921, guid: 56d182981ba1f4d6eb22810784cdb6cd, type: 3}
+  - {fileID: 4980751744999542695, guid: 56d182981ba1f4d6eb22810784cdb6cd, type: 3}
+  - {fileID: 4996995007976980875, guid: 56d182981ba1f4d6eb22810784cdb6cd, type: 3}
+  - {fileID: 5000254507835852519, guid: 56d182981ba1f4d6eb22810784cdb6cd, type: 3}
+  - {fileID: 5047704512850479675, guid: 56d182981ba1f4d6eb22810784cdb6cd, type: 3}
+  - {fileID: 5337448645578394443, guid: 56d182981ba1f4d6eb22810784cdb6cd, type: 3}
+  - {fileID: 6621786791131625799, guid: 56d182981ba1f4d6eb22810784cdb6cd, type: 3}
+  - {fileID: 7400775424482280638, guid: 56d182981ba1f4d6eb22810784cdb6cd, type: 3}
+  - {fileID: 7742298430783984577, guid: 56d182981ba1f4d6eb22810784cdb6cd, type: 3}
+  - {fileID: 7967110328740518756, guid: 56d182981ba1f4d6eb22810784cdb6cd, type: 3}
+  - {fileID: 8223404645399951754, guid: 56d182981ba1f4d6eb22810784cdb6cd, type: 3}

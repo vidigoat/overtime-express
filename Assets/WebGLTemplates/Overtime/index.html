@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0f58d8">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>OVERTIME EXPRESS</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #0b1c4a; overflow: hidden; touch-action: none; overscroll-behavior: none; -webkit-user-select: none; user-select: none; }
+    #wrap { position: fixed; inset: 0; display: flex; justify-content: center; align-items: center; }
+    /* phones get the whole screen; on a desktop the game sits in a phone-shaped column */
+    canvas { height: 100dvh; width: min(100vw, calc(100dvh * 0.5)); display: block; background: #0f58d8; outline: none; }
+    #load { position: fixed; inset: 0; display: flex; flex-direction: column; gap: 14px; align-items: center; justify-content: center; color: #fff; font: 700 22px/1 system-ui, sans-serif; letter-spacing: .08em; pointer-events: none; }
+    #load b { font-size: 44px; letter-spacing: 0; }
+    #bar { width: 200px; height: 10px; border-radius: 5px; background: rgba(255,255,255,.2); overflow: hidden; }
+    #fill { height: 100%; width: 0; background: #ffd21e; }
+  </style>
+</head>
+<body>
+  <div id="wrap"><canvas id="unity-canvas" tabindex="-1"></canvas></div>
+  <div id="load"><b>OVERTIME</b><div id="bar"><div id="fill"></div></div><span>CLOCKING IN</span></div>
+  <script src="Build/{{{ LOADER_FILENAME }}}"></script>
+  <script>
+    createUnityInstance(document.querySelector("#unity-canvas"), {
+      dataUrl: "Build/{{{ DATA_FILENAME }}}",
+      frameworkUrl: "Build/{{{ FRAMEWORK_FILENAME }}}",
+      codeUrl: "Build/{{{ CODE_FILENAME }}}",
+      streamingAssetsUrl: "StreamingAssets",
+      companyName: {{{ JSON.stringify(COMPANY_NAME) }}},
+      productName: {{{ JSON.stringify(PRODUCT_NAME) }}},
+      productVersion: {{{ JSON.stringify(PRODUCT_VERSION) }}},
+      matchWebGLToCanvasSize: true,
+      devicePixelRatio: Math.min(window.devicePixelRatio || 1, 2),
+    }, function (p) { document.getElementById("fill").style.width = Math.round(p * 100) + "%"; })
+      .then(function () { document.getElementById("load").remove(); })
+      .catch(function (e) { document.querySelector("#load span").textContent = "Could not start: " + e; });
+  </script>
+</body>
+</html>

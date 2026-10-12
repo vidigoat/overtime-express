@@ -1,0 +1,21 @@
+# Unity generated
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+/MemoryCaptures/
+*.csproj
+*.sln
+*.slnx
+*.user
+.vs/
+.idea/
+.DS_Store
+# local working files
+/_downloads/
+/Shots/
+/Assets/Shots/
+/Assets/Shots.meta
