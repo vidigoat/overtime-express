@@ -115,6 +115,7 @@ namespace Overtime
                 cardPips[i] = Pips(cardBg[i].rectTransform, TextAnchor.MiddleRight, -16, 0, 15);
             }
             shopBtn = Btn(m, "GEAR SHOP", TextAnchor.LowerCenter, 0, 44, 220, 60, Yellow, Ink, 26);
+            Txt(m, "Swipe to change lane  ·  tap to jump  ·  tap in the air to dash\nSwipe down to slide  ·  hold to slow time", 11, TextAnchor.LowerCenter, 0, 6, 380, 30, Text2, false);
         }
 
         void BuildBrief()

@@ -64,6 +64,15 @@ namespace Overtime
 
             // roofs: one mesh for every wet top surface
             var verts = new List<Vector3>(); var uvs = new List<Vector2>(); var tris = new List<int>();
+            // the first roof gets a run-up behind the start line, so the opening shot never looks off the back of the building
+            {
+                var f = level.roofs[0]; int b0 = verts.Count; const float back = 34;
+                verts.Add(new Vector3(-RoofHalf, f.y, f.s0 - back)); verts.Add(new Vector3(RoofHalf, f.y, f.s0 - back));
+                verts.Add(new Vector3(RoofHalf, f.y, f.s0)); verts.Add(new Vector3(-RoofHalf, f.y, f.s0));
+                for (int k = 0; k < 4; k++) uvs.Add(new Vector2(50, 100));
+                tris.AddRange(new[] { b0, b0 + 3, b0 + 2, b0, b0 + 2, b0 + 1 });
+                Box(bld, 0, f.y - 70.06f, f.s0 - back / 2, RoofHalf * 2, 140, back, 0, false);
+            }
             foreach (var r in level.roofs)
             {
                 float len = r.s1 - r.s0, zc = (r.s0 + r.s1) / 2;
