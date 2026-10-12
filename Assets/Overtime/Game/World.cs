@@ -353,7 +353,7 @@ namespace Overtime
             ("food_burger", 2.6f, new Vector3(0, -0.2f, 0), new Color(1f, 0.52f, 0.1f), "BURGER RUSH", "RUSH"),
             ("Can_A", 2.4f, new Vector3(0, -0.45f, 0), new Color(0.22f, 0.9f, 1f), "SODA FIZZ", "x2"),
             ("Box_B", 0.75f, new Vector3(0, -0.4f, 0), new Color(0.85f, 0.95f, 1f), "BUBBLE WRAP", "WRAP"),
-            ("Coin_C", 1.5f, new Vector3(0, -0.3f, 0), new Color(1f, 0.82f, 0.12f), "TOCK MAGNET", "MAGNET"),
+            ("Coin_C", 1.5f, new Vector3(0, -0.3f, 0), new Color(1f, 0.82f, 0.12f), "TOCK MAGNET", "PULL"),
         };
 
         public void Tick(Sim sim, float time, float dt)
@@ -376,7 +376,19 @@ namespace Overtime
                 var t = coins[i];
                 bool show = !cs[i].taken && Mathf.Abs(cs[i].s - sim.s) < 120;
                 if (t.gameObject.activeSelf != show) t.gameObject.SetActive(show);
-                if (show) t.rotation = Quaternion.Euler(0, time * 200 + i * 31, 0);
+                if (!show) continue;
+                t.rotation = Quaternion.Euler(0, time * 200 + i * 31, 0);
+                // with the magnet on, nearby Tocks visibly swing in toward the courier before they're collected
+                var home = new Vector3(cs[i].x, cs[i].y, cs[i].s);
+                if (sim.magnetT > 0)
+                {
+                    var kip = new Vector3(sim.x, sim.y + 1f, sim.s);
+                    float d = Vector3.Distance(home, kip);
+                    float pull = d < 9f ? Mathf.Pow(1 - d / 9f, 1.6f) : 0;
+                    t.position = Vector3.Lerp(home, kip, pull);
+                    t.localScale = Vector3.one * (1 + pull * 0.4f);
+                }
+                else if (t.position != home) { t.position = home; t.localScale = Vector3.one; }
             }
             customer?.Tick(dt, sim.ended == EndReason.Finish);
             var caps = sim.level.capsules;
