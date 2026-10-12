@@ -10,7 +10,8 @@ Play the current build: https://overtime-hazel-three.vercel.app
 - **The clock is everything.** Seconds are your health, your fuel and your pay. Chaining moves earns time, crashing costs it.
 - **Overtime.** At zero you don't stop: the city turns red, you speed up, points double, and one hit ends the run.
 - **Every parcel changes the rules.** Heavy parcels smash through hurdles, fragile ones crack on hard landings, hot ones speed up the clock.
-- **Power-ups from a courier's day.** Burger rush, soda fizz, bubble wrap and the tip magnet.
+- **Power-ups from a courier's day.** Burger rush, soda fizz, bubble wrap and the Tock magnet.
+- **Tocks.** The city's money is time: hex tokens with clock hands, picked up on the run and paid as wages.
 - **Wages and gear.** Deliveries pay wages; wages buy gear; the last thing in the shop is the bike.
 
 One thumb: swipe left and right to change lane (again to run a wall), swipe up or tap to jump, tap in the air to dash,

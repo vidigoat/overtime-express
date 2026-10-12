@@ -47,7 +47,8 @@ namespace Overtime
                         else if (Mathf.Abs(horiz ? d.x : d.y) >= th * 2) go = true;
                     }
                     else if (Mathf.Abs(d.x) >= th || Mathf.Abs(d.y) >= th) go = true;
-                    else if (Time.unscaledTime - downT > 0.17f) touchSlow = true;
+                    // slow-mo needs a deliberate hold: a thumb resting between swipes must not burn the clock
+                    else if (Time.unscaledTime - downT > 0.3f && d.magnitude < th * 0.35f) touchSlow = true;
                     if (go)
                     {
                         start = pos; fired = true; lastHoriz = horiz; touchSlow = false;
