@@ -14,7 +14,7 @@ namespace Overtime
     {
         public Action<Swipe> onSwipe = _ => { };
         public bool slow;
-        bool down, fired, lastHoriz, touchSlow;
+        bool down, fired, lastHoriz, touchSlow, lastUp, dashedThisDrag;
         Vector2 start; float downT;
 
         public void Update()
@@ -36,14 +36,16 @@ namespace Overtime
                 // thresholds in physical size so the gesture feels the same on every phone
                 // sized from the screen, not reported DPI: browsers on phones report DPI unreliably
                 float th = Mathf.Max(14f, Mathf.Min(Screen.width, Screen.height) * 0.045f);
-                if (ptr.press.wasPressedThisFrame) { down = true; fired = false; touchSlow = false; start = pos; downT = Time.unscaledTime; }
+                if (ptr.press.wasPressedThisFrame) { down = true; fired = false; touchSlow = false; lastUp = false; dashedThisDrag = false; start = pos; downT = Time.unscaledTime; }
                 else if (down && ptr.press.isPressed)
                 {
                     Vector2 d = pos - start; bool horiz = Mathf.Abs(d.x) > Mathf.Abs(d.y);
                     bool go = false;
                     if (fired)
                     {
-                        if (horiz == lastHoriz) { if (horiz) start.x = pos.x; else start.y = pos.y; }
+                        // one exception to "no repeats": keep flicking upward well past the jump and it becomes jump-then-dash in one motion
+                        if (!horiz && !lastHoriz && lastUp && d.y >= th * 2.6f && !dashedThisDrag) { go = true; dashedThisDrag = true; }
+                        else if (horiz == lastHoriz) { if (horiz) start.x = pos.x; else if (!(lastUp && d.y > 0 && !dashedThisDrag)) start.y = pos.y; }
                         else if (Mathf.Abs(horiz ? d.x : d.y) >= th * 2) go = true;
                     }
                     else if (Mathf.Abs(d.x) >= th || Mathf.Abs(d.y) >= th) go = true;
@@ -51,7 +53,7 @@ namespace Overtime
                     else if (Time.unscaledTime - downT > 0.3f && d.magnitude < th * 0.35f) touchSlow = true;
                     if (go)
                     {
-                        start = pos; fired = true; lastHoriz = horiz; touchSlow = false;
+                        start = pos; fired = true; lastHoriz = horiz; touchSlow = false; lastUp = !horiz && d.y > 0;
                         onSwipe(horiz ? (d.x > 0 ? Swipe.Right : Swipe.Left) : d.y > 0 ? Swipe.Up : Swipe.Down);
                     }
                 }
