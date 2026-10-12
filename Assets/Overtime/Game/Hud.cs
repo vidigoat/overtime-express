@@ -91,7 +91,7 @@ namespace Overtime
                 powText[i] = Txt(pr, "", 13, TextAnchor.MiddleCenter, 0, 0, 96, 26, Ink, false);
                 powRow[i].SetActive(false);
             }
-            popup = Txt(p, "", 40, TextAnchor.MiddleCenter, 0, 150, 380, 100, Color.white, true, 3); Center(popup); popup.font = italic; popup.resizeTextForBestFit = true; popup.resizeTextMaxSize = 40; popup.resizeTextMinSize = 16; popup.rectTransform.sizeDelta = new Vector2(350, 110);
+            popup = Txt(p, "", 40, TextAnchor.MiddleCenter, 0, 150, 380, 100, Color.white, true, 3); Center(popup); popup.font = italic; popup.rectTransform.sizeDelta = new Vector2(370, 110);
             var hintBg = Img(p, new Color(Ink.r, Ink.g, Ink.b, 0.86f), round, TextAnchor.LowerCenter, 0, 34, 344, 58);
             hint = Txt(hintBg.rectTransform, "", 18, TextAnchor.MiddleCenter, 0, 0, 0, 0, Color.white, false); Stretch(hint.rectTransform); hint.rectTransform.offsetMin = new Vector2(12, 4); hint.rectTransform.offsetMax = new Vector2(-12, -4);
         }
@@ -130,7 +130,7 @@ namespace Overtime
             var dot = Img(c, Panel2, round, TextAnchor.UpperCenter, 0, -250, 316, 150);
             Txt(dot.rectTransform, "DOT // DISPATCH", 12, TextAnchor.UpperLeft, 14, -10, 200, 16, Cyan, false);
             bDot = Txt(dot.rectTransform, "", 15, TextAnchor.UpperLeft, 14, -30, 290, 116, Color.white, false);
-            bPay = Txt(c, "", 18, TextAnchor.LowerCenter, 0, 96, 320, 26, Color.white, false); bPay.supportRichText = true;
+            bPay = Txt(c, "", 15, TextAnchor.LowerCenter, 0, 96, 330, 24, Color.white, false); bPay.supportRichText = true;
             bStart = Btn(c, "START SHIFT", TextAnchor.LowerCenter, 0, 22, 300, 64, Yellow, Ink, 28);
             bBack = Btn(b, "BACK", TextAnchor.LowerCenter, 0, 54, 120, 44, new Color(0, 0, 0, 0.4f), Color.white, 18);
         }
@@ -286,7 +286,13 @@ namespace Overtime
             for (int i = 0; i < pips.Length; i++) { pips[i].gameObject.SetActive(visible); pips[i].color = i < n ? Yellow : new Color(1, 1, 1, 0.18f); }
         }
 
-        public void Popup(string s, Color c, float dur = 0.75f) { popup.text = s; popupColor = c; popupT = dur; }
+        public void Popup(string s, Color c, float dur = 0.75f)
+        {
+            // long headlines step down a size so they never run off a phone screen
+            int first = s.IndexOf('\n'); int len = first < 0 ? s.Length : first;
+            popup.fontSize = len > 12 ? 26 : len > 9 ? 31 : 40;
+            popup.text = s; popupColor = c; popupT = dur;
+        }
         public void Hint(string s) { hint.text = s; hintT = 3.4f; }
         public void Cine(string s, Color c, float dur = 0.5f) { cine.text = s; cine.color = c; cineT = dur; }
         public void BumpClock() { clockBump = 1; }

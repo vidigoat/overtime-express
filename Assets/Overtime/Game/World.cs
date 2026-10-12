@@ -249,6 +249,24 @@ namespace Overtime
                 float top = near ? -16 + Rnd() * 30 : -20 + Rnd() * Rnd() * 120;
                 float z = -80 + (i / (float)count) * span + Rnd() * 6;
                 Box(bld, x, top - 80, z, w, 160, dp, 0, false);
+                // neon billboards on the nearer towers: the city talks about time, money and the competition
+                if (near && i % 4 == 1 && z > 20 && z < level.length)
+                {
+                    var ad = Ads[(int)(Rnd() * Ads.Length) % Ads.Length];
+                    float bw = 9.5f, bh = 5.2f, bx = x - side * (w / 2 + 0.5f), by = Mathf.Max(top - 3.5f, 3.5f) + Rnd() * 3;
+                    float yaw = side > 0 ? -58 : 58;
+                    var rot = Quaternion.Euler(0, yaw, 0);
+                    var holder = new GameObject("Billboard").transform; holder.SetParent(root.transform, false); holder.SetPositionAndRotation(new Vector3(bx, by, z), rot);
+                    void Part(Material m, Vector3 lp, Vector3 ls) { var g = Mesh(Mats.Cube, m, Vector3.zero, Quaternion.identity, ls, false); g.transform.SetParent(holder, false); g.transform.localPosition = lp; g.transform.localRotation = Quaternion.identity; }
+                    var glow = Mats.Glow(ad.color, 1.8f);
+                    Part(Mats.Lit(Mats.Hex(0x0b0a20), 0.2f), new Vector3(0, 0, 0.12f), new Vector3(bw, bh, 0.2f));
+                    Part(glow, new Vector3(0, bh / 2, 0), new Vector3(bw, 0.14f, 0.14f)); Part(glow, new Vector3(0, -bh / 2, 0), new Vector3(bw, 0.14f, 0.14f));
+                    Part(glow, new Vector3(-bw / 2, 0, 0), new Vector3(0.14f, bh, 0.14f)); Part(glow, new Vector3(bw / 2, 0, 0), new Vector3(0.14f, bh, 0.14f));
+                    var tg = new GameObject("Text"); tg.transform.SetParent(holder, false); tg.transform.localPosition = new Vector3(0, 0.25f, -0.05f);
+                    var tm = tg.AddComponent<TextMesh>(); tm.font = AdFont; tm.text = ad.text; tm.anchor = TextAnchor.MiddleCenter; tm.alignment = TextAlignment.Center;
+                    tm.fontSize = 90; tm.characterSize = ad.text.Contains("\n") ? 0.17f : 0.24f; tm.color = Color.Lerp(ad.color, Color.white, 0.35f); tm.lineSpacing = 0.85f;
+                    tg.GetComponent<MeshRenderer>().sharedMaterial = AdFont.material;
+                }
 
             }
             for (int i = 0; i < 26; i++)
@@ -273,6 +291,14 @@ namespace Overtime
         {
             ("watertower", 1.15f), ("box_A", 1.5f), ("box_B", 1.5f), ("trash_A", 1.5f), ("trash_B", 1.5f), ("bench", 1.5f), ("dumpster", 1.25f), ("firehydrant", 1.5f),
             ("bush", 1.7f), ("bush", 2.1f), ("streetlight", 1.35f), ("Barrel_A", 1.3f), ("Pallet_Large", 1.2f), ("Box_A", 1.3f), ("Box_C", 1.3f), ("trafficlight_A", 1.3f),
+        };
+
+        static Font adFont;
+        static Font AdFont => adFont ? adFont : adFont = Resources.Load<Font>("ChakraPetch-BoldItalic") ?? Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        static readonly (string text, Color color)[] Ads =
+        {
+            ("LATE?", new Color(1f, 0.24f, 0.83f)), ("TIME IS\nTOCKS", new Color(1f, 0.76f, 0.1f)), ("SPEEDY-GO\nwe get there first", new Color(0.22f, 0.9f, 1f)),
+            ("24H", new Color(0.3f, 1f, 0.6f)), ("OVERTIME\nEXPRESS", new Color(1f, 0.76f, 0.1f)), ("NO OVERTIME\nPAY", new Color(1f, 0.13f, 0.25f)), ("TICK\nTOCK", new Color(0.72f, 0.55f, 1f)),
         };
 
         static Mesh tock;

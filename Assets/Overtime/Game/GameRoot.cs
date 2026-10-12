@@ -31,7 +31,7 @@ namespace Overtime
         // ───────── persistence: wallet, gear, progress ─────────
         public static readonly (string id, string name, string desc, int price)[] GearList =
         {
-            ("gloves", "GRIP GLOVES", "Forgiving ledge jumps", 250), ("soles", "SPRING SOLES", "Jump higher", 400), ("magnet", "COIN MAGNET", "Pulls tips toward you", 600),
+            ("gloves", "GRIP GLOVES", "Forgiving ledge jumps", 250), ("soles", "SPRING SOLES", "Jump higher", 400), ("magnet", "TOCK MAGNET", "Pulls Tocks toward you", 600),
             ("flask", "THERMO FLASK", "Slow-mo burns no extra time", 700), ("wrap", "BUBBLE WRAP", "First crash each run is free", 900),
             ("board", "SKATEBOARD", "Faster, and grinds pay double", 1300), ("bike", "THE BIKE", "Wages x1.5. The dream.", 3000),
         };
@@ -197,7 +197,7 @@ namespace Overtime
             hud.bRule.text = d.rule;
             hud.bRuleBg.color = d.kind switch { ParcelKind.Heavy => new Color(1f, 0.72f, 0.3f), ParcelKind.Fragile => new Color(0.75f, 0.9f, 1f), ParcelKind.Hot => new Color(1f, 0.55f, 0.45f), ParcelKind.Live => new Color(0.7f, 1f, 0.7f), ParcelKind.Ticking => new Color(1f, 0.6f, 0.85f), _ => new Color(0.86f, 0.9f, 1f) };
             hud.bDot.text = d.briefing;
-            hud.bPay.text = $"PAYS  <color=#ffc21a>{d.pay} TOCKS</color>  +  time left  +  pickups";
+            hud.bPay.text = $"PAYS <color=#ffc21a>{d.pay} TOCKS</color> + TIME + PICKUPS";
             SetMode(Mode.Brief);
         }
 
@@ -315,7 +315,7 @@ namespace Overtime
             // power-up dressing on the courier
             bubble.gameObject.SetActive(sim.shield && runner.root.gameObject.activeSelf && sim.ended == EndReason.None && mode == Mode.Play);
             if (sim.shield) bubble.localScale = Vector3.one * (2.3f + Mathf.Sin(time * 6) * 0.08f);
-            if (sim.rushT > 0) fx.Burst(new Vector3(sim.x + Random.Range(-0.3f, 0.3f), sim.y + Random.Range(0.3f, 1.4f), sim.s - 0.4f), 3, Mats.Hex(0xff8a1f, 2.4f), 2.5f, 0.6f, sim.speed * 0.35f, 0.5f, 0.45f, 2);
+            if (sim.rushT > 0 && Random.value < 0.45f) fx.Burst(new Vector3(sim.x + Random.Range(-0.25f, 0.25f), sim.y + Random.Range(0.1f, 0.5f), sim.s - 0.3f), 1, Mats.Hex(0xff8a1f, 2.4f), 1.6f, 1.2f, sim.speed * 0.55f, 0.26f, 0.32f, -2);
             if (sim.fizzT > 0 && Random.value < 0.5f) fx.Burst(new Vector3(sim.x + Random.Range(-0.4f, 0.4f), sim.y + 1.2f, sim.s), 1, Mats.Hex(0x39e6ff, 2.2f), 1.2f, 2.5f, sim.speed * 0.8f, 0.3f, 0.7f, -3);
             if (sim.magnetT > 0 && Random.value < 0.35f) fx.Burst(new Vector3(sim.x, sim.y + 1f, sim.s), 1, Mats.Hex(0xffd21e, 2.2f), 3f, 0.5f, sim.speed * 0.8f, 0.25f, 0.4f, 0);
             var flow = Mood.Flow(sim.chain);
@@ -412,7 +412,7 @@ namespace Overtime
                     case EvType.Jump: runner.squash = -0.5f; runner.OneShot("Jump_Start", 0.6f, 2.6f); fx.Burst(p + Vector3.up * 0.08f, 6, Color.white, 2.5f, 0.2f, f, 0.4f, 0.35f, 2); if (playing) sfx.Play("jump"); break;
                     case EvType.Slide: if (playing) sfx.Play("slide", 0.7f); break;
                     case EvType.Lane: if (playing) sfx.Play("lane"); break;
-                    case EvType.Dash: dashT = 0.32f; rig.fovKick = 13; fx.Burst(p + Vector3.up, 30, Color.white * 1.5f, 7, 0, sim.speed * 0.5f, 0.55f, 0.4f, 0); if (playing) { hud.BumpClock(); sfx.Play("dash"); } break;
+                    case EvType.Dash: dashT = 0.32f; rig.fovKick = 13; runner.squash = -0.9f; fx.Burst(p + Vector3.up, 30, Color.white * 1.5f, 7, 0, sim.speed * 0.5f, 0.55f, 0.4f, 0); if (playing) { hud.BumpClock(); sfx.Play("dash"); } break;
                     case EvType.Hit: rig.shake = 0.75f; hitT = 1; runner.OneShot("Hit_Chest", 1f, 1.3f); fx.Burst(p + Vector3.up, 46, Mats.Hex(0xff2040, 2), 10, 2, sim.speed * 0.4f, 0.6f, 0.7f);
                         if (playing) { sfx.Play("hit"); if (sim.ended == EndReason.None) hud.Popup("CRASH!\n<size=18>-4 seconds</size>", Hud.Red); } break;
                     case EvType.Fall: rig.shake = 0.6f; hitT = 0.8f; if (playing) { sfx.Play("hit"); if (sim.ended == EndReason.None) hud.Popup("WHOOPS!\n<size=18>-5 seconds</size>", Hud.Red); } break;
