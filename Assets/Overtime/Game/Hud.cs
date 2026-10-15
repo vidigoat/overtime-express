@@ -14,7 +14,7 @@ namespace Overtime
     public class Hud
     {
         public static readonly Color Ink = new Color(0.09f, 0.07f, 0.22f), Yellow = new Color(1f, 0.82f, 0.12f), Cyan = new Color(0.22f, 0.9f, 1f),
-            Red = new Color(1f, 0.25f, 0.3f), Green = new Color(0.3f, 0.92f, 0.55f), Card = new Color(0.05f, 0.045f, 0.15f, 0.93f), Text2 = new Color(0.66f, 0.74f, 1f), Panel2 = new Color(0.1f, 0.11f, 0.28f, 1f), Pink = new Color(1f, 0.36f, 0.7f);
+            Red = new Color(1f, 0.25f, 0.3f), Green = new Color(0.3f, 0.92f, 0.55f), Card = new Color(0.05f, 0.045f, 0.15f, 0.93f), Deep = new Color(0.13f, 0.1f, 0.32f, 0.98f), Text2 = new Color(0.66f, 0.74f, 1f), Panel2 = new Color(0.1f, 0.11f, 0.28f, 1f), Pink = new Color(1f, 0.36f, 0.7f);
         public static readonly string[] DistrictNames = { "MIDTOWN", "THE DOCKS", "NEON MILE", "ANTENNA HILL", "NIGHT MARKET", "CLOCK TOWER" };
         public static readonly Color[] DistrictColors = { new Color(0.62f, 0.45f, 1f), new Color(0.2f, 0.92f, 0.78f), new Color(1f, 0.35f, 0.85f), new Color(0.35f, 0.6f, 1f), new Color(1f, 0.65f, 0.2f), new Color(1f, 0.82f, 0.12f) };
 
@@ -33,13 +33,13 @@ namespace Overtime
         public Button shopBtn, introGo, playBtn, routeBtn, routeBack;
         // route
         public GameObject routeScreen; public RectTransform routeContent; public ScrollRect routeScroll; public Text routeWallet;
-        public Image[] routeNode = new Image[6], routeTick = new Image[6], routeChest = new Image[5]; public Image routeStart;
+        public Image[] routeNode = new Image[6], routeTick = new Image[6], routeChest = new Image[5], routeIcon = new Image[6], routeBannerIcon = new Image[6], routeLock = new Image[6], routeBan = new Image[6], chestIcon = new Image[5]; public Image routeStart, routeHalo;
         public Text[] routeBanner = new Text[6], routeItem = new Text[6], chestText = new Text[5]; public Button[] chestBtn = new Button[5];
         public readonly List<(Image dot, int seg)> routeDots = new List<(Image, int)>();
         public Text introText;
         public int pulsePin = -1; public bool[] chestReady = new bool[5];
         // brief
-        public Text bNum, bItem, bFor, bRule, bDot, bPay, bGoals; public Image bRuleBg; public Button bStart, bBack;
+        public Text bNum, bItem, bFor, bRule, bDot, bPay, bGoals; public Image bRuleBg, bStage, bGlow, bIcon; public Image[] bGoalTile = new Image[3], bGoalPip = new Image[3]; public Text[] bGoalText = new Text[3]; public Button bStart, bBack;
         // results
         public Text rTitle, rQuote, rLines, rAmounts, rTotal, rRank; public Image[] rPips; public Image rRankFill; public Button retry, next, toMenu;
         // shop
@@ -135,7 +135,7 @@ namespace Overtime
             hint = Txt(hintBg.rectTransform, "", 17, TextAnchor.MiddleCenter, 0, 0, 0, 0, Color.white, false); Stretch(hint.rectTransform); hint.rectTransform.offsetMin = new Vector2(12, 4); hint.rectTransform.offsetMax = new Vector2(-12, -4);
 
             // the tutorial thumb: a glowing fingertip that sweeps the move it wants
-            tut = Row(p, TextAnchor.MiddleCenter, 0, -150, 300, 260);
+            tut = Row(p, TextAnchor.MiddleCenter, 0, -20, 300, 260);
             var tr = tut.GetComponent<RectTransform>();
             tutText = Txt(tr, "", 30, TextAnchor.UpperCenter, 0, 0, 300, 40, Yellow, true, 3); tutText.font = italic;
             var trail = Img(tr, new Color(1, 1, 1, 0.12f), null, TextAnchor.MiddleCenter, 0, -20, 46, 46); trail.sprite = disc; trail.raycastTarget = false;
@@ -158,7 +158,7 @@ namespace Overtime
             Txt(tag.rectTransform, "EXPRESS", 21, TextAnchor.MiddleCenter, 0, 1, 132, 30, Color.white, true);
 
             // company rank: the thing you are really growing
-            var rk = Img(m, Card, round, TextAnchor.UpperCenter, 0, -164, 352, 62); var rr = rk.rectTransform;
+            var rk = Img(m, Deep, UIKit.Panel(22, 8), TextAnchor.UpperCenter, 0, -164, 352, 62); var rr = rk.rectTransform;
             var badge = Img(rr, Yellow, null, TextAnchor.MiddleLeft, 12, 0, 44, 44); badge.sprite = hex; badge.raycastTarget = false;
             var bin = Img(badge.rectTransform, Ink, null, TextAnchor.MiddleCenter, 0, 0, 32, 32); bin.sprite = hex; bin.raycastTarget = false;
             Txt(bin.rectTransform, "HQ", 12, TextAnchor.MiddleCenter, 0, 0, 32, 32, Yellow, false);
@@ -176,86 +176,104 @@ namespace Overtime
         }
 
         /// <summary>
-        /// The city route: one long winding path down the screen, a stop per job, a district banner over each,
-        /// and a pay chest between districts. Done stops are gold with a tick, the next one breathes with a START tag.
+        /// The city route, Duolingo-style: one winding path of fat 3D coin stops, each showing the actual parcel,
+        /// a glossy banner per district, reward chests between them. Cleared stops turn gold with a tick,
+        /// the next one sits in a breathing halo under a START bubble, locked ones are dark silhouettes.
         /// </summary>
         void BuildRoute()
         {
             routeScreen = Panel("Route"); var r = routeScreen.GetComponent<RectTransform>();
-            Shade(r, 0.93f);
-            // scrolling path
+            var bg = Img(r, new Color(0.17f, 0.1f, 0.4f), null, TextAnchor.MiddleCenter, 0, 0, 0, 0); bg.sprite = UIKit.Gradient; Stretch(bg.rectTransform);
+            bg.rectTransform.offsetMin = new Vector2(-200, -200); bg.rectTransform.offsetMax = new Vector2(200, 200);
             var view = new GameObject("View", typeof(RectTransform), typeof(RectMask2D), typeof(Image)); var vr = view.GetComponent<RectTransform>(); vr.SetParent(r, false);
-            vr.anchorMin = Vector2.zero; vr.anchorMax = Vector2.one; vr.offsetMin = new Vector2(0, 96); vr.offsetMax = new Vector2(0, -64);
+            vr.anchorMin = Vector2.zero; vr.anchorMax = Vector2.one; vr.offsetMin = new Vector2(0, 92); vr.offsetMax = new Vector2(0, -66);
             view.GetComponent<Image>().color = new Color(0, 0, 0, 0.001f);
             var content = new GameObject("Content", typeof(RectTransform)); routeContent = content.GetComponent<RectTransform>(); routeContent.SetParent(vr, false);
             routeContent.anchorMin = new Vector2(0, 1); routeContent.anchorMax = new Vector2(1, 1); routeContent.pivot = new Vector2(0.5f, 1);
             routeScroll = view.AddComponent<ScrollRect>(); routeScroll.content = routeContent; routeScroll.horizontal = false; routeScroll.viewport = vr;
             routeScroll.movementType = ScrollRect.MovementType.Elastic; routeScroll.decelerationRate = 0.12f; routeScroll.scrollSensitivity = 30;
 
-            const float step = 128, top = 40;
-            float y = -top; var spots = new List<Vector2>();
+            var dotsLayer = Row(routeContent, TextAnchor.UpperCenter, 0, 0, 0, 0);
+            routeHalo = Img(routeContent, Color.white, null, TextAnchor.UpperCenter, 0, 0, 136, 136); routeHalo.sprite = ring; routeHalo.raycastTarget = false;
+            float y = -26; var spots = new List<Vector2>();
+            float[] xs = { 0, -78, 0, 78, 0, -78 };
             for (int i = 0; i < 6; i++)
             {
-                // district banner
                 var c = DistrictColors[i];
-                var ban = Img(routeContent, new Color(c.r * 0.55f, c.g * 0.55f, c.b * 0.55f, 0.95f), round, TextAnchor.UpperCenter, 0, y, 352, 62); ban.raycastTarget = false;
-                var stripe = Img(ban.rectTransform, c, round, TextAnchor.MiddleLeft, 0, 0, 8, 62); stripe.raycastTarget = false;
-                Txt(ban.rectTransform, $"DISTRICT {i + 1}", 11, TextAnchor.UpperLeft, 20, -9, 200, 14, new Color(1, 1, 1, 0.75f), false);
-                routeBanner[i] = Txt(ban.rectTransform, DistrictNames[i], 22, TextAnchor.UpperLeft, 20, -22, 320, 30, Color.white, false); routeBanner[i].font = italic;
-                y -= 62 + 34;
-                float x = new[] { 0f, -64f, 64f }[i % 3] * (i % 2 == 0 ? 1 : -1);
-                spots.Add(new Vector2(x, y - 40));
-                // the stop: a fat coin with a dark lip so it looks pressable
-                var lip = Img(routeContent, new Color(0, 0, 0, 0.5f), null, TextAnchor.UpperCenter, x, y - 8, 84, 80); lip.sprite = disc; lip.raycastTarget = false;
-                routeNode[i] = Img(routeContent, c, null, TextAnchor.UpperCenter, x, y, 84, 80); routeNode[i].sprite = disc;
+                // district banner: a glossy lipped slab in the district's colour, with the parcel's portrait on the right
+                var ban = Img(routeContent, c, UIKit.Panel(18, 7), TextAnchor.UpperCenter, 0, y, 352, 84); ban.raycastTarget = false; routeBan[i] = ban;
+                Txt(ban.rectTransform, $"DISTRICT {i + 1}", 12, TextAnchor.UpperLeft, 20, -13, 200, 16, new Color(Ink.r, Ink.g, Ink.b, 0.7f), false);
+                routeBanner[i] = Txt(ban.rectTransform, DistrictNames[i], 26, TextAnchor.UpperLeft, 18, -28, 260, 34, Color.white, true, 2); routeBanner[i].font = italic;
+                routeBannerIcon[i] = Img(ban.rectTransform, Color.white, null, TextAnchor.MiddleRight, -10, 6, 76, 76); routeBannerIcon[i].raycastTarget = false; routeBannerIcon[i].preserveAspect = true;
+                y -= 84 + 44;
+                float x = xs[i];
+                spots.Add(new Vector2(x, y - 50));
+                // the stop: a fat coin with the parcel on its face
+                routeNode[i] = Img(routeContent, c, null, TextAnchor.UpperCenter, x, y, 108, 108); routeNode[i].sprite = UIKit.Coin;
                 cards[i] = routeNode[i].gameObject.AddComponent<Button>(); cards[i].transition = Selectable.Transition.None;
-                routeNode[i].gameObject.AddComponent<Squish>().press = new Vector2(0, -6);
-                var shine = Img(routeNode[i].rectTransform, new Color(1, 1, 1, 0.22f), null, TextAnchor.MiddleCenter, -12, 14, 34, 22); shine.sprite = disc; shine.raycastTarget = false;
-                cardText[i] = Txt(routeNode[i].rectTransform, (i + 1).ToString(), 34, TextAnchor.MiddleCenter, 0, 2, 84, 80, Color.white, true, 2); cardText[i].font = italic; cardText[i].supportRichText = true;
-                routeTick[i] = Tick(routeNode[i].rectTransform);
+                routeNode[i].gameObject.AddComponent<Squish>().press = new Vector2(0, -5);
+                routeIcon[i] = Img(routeNode[i].rectTransform, Color.white, null, TextAnchor.MiddleCenter, 0, 7, 66, 66); routeIcon[i].raycastTarget = false; routeIcon[i].preserveAspect = true;
+                cardText[i] = Txt(routeNode[i].rectTransform, "", 30, TextAnchor.MiddleCenter, 0, 7, 100, 60, Color.white, true, 2); cardText[i].supportRichText = true;
+                // badges: a green tick when cleared, a padlock when locked
+                var tb = Img(routeNode[i].rectTransform, Green, null, TextAnchor.MiddleCenter, 36, -30, 36, 36); tb.sprite = UIKit.Coin; tb.raycastTarget = false;
+                var tk = Tick(tb.rectTransform); tk.rectTransform.localScale = Vector3.one * 0.62f; tk.rectTransform.anchoredPosition = new Vector2(1, 3);
+                foreach (var im in tk.GetComponentsInChildren<Image>()) if (im != tk) im.color = Color.white;
+                routeTick[i] = tb;
+                var lb = Img(routeNode[i].rectTransform, new Color(0.2f, 0.2f, 0.32f), null, TextAnchor.MiddleCenter, 36, -30, 36, 36); lb.sprite = UIKit.Coin; lb.raycastTarget = false;
+                var shackle = Img(lb.rectTransform, new Color(0.75f, 0.78f, 0.9f), null, TextAnchor.MiddleCenter, 0, 7, 14, 14); shackle.sprite = ring; shackle.raycastTarget = false;
+                var lockBody = Img(lb.rectTransform, new Color(0.75f, 0.78f, 0.9f), round, TextAnchor.MiddleCenter, 0, 0, 18, 12); lockBody.raycastTarget = false;
+                routeLock[i] = lb;
                 cardPips[i] = new Image[3];
                 for (int k = 0; k < 3; k++)
                 {
-                    var pip = Img(routeContent, new Color(1, 1, 1, 0.2f), null, TextAnchor.UpperCenter, x + (k - 1) * 18, y - 92, 11, 11);
+                    var pip = Img(routeContent, new Color(1, 1, 1, 0.2f), null, TextAnchor.UpperCenter, x + (k - 1) * 20, y - 118, 12, 12);
                     pip.rectTransform.localRotation = Quaternion.Euler(0, 0, 45); pip.raycastTarget = false; cardPips[i][k] = pip;
                 }
-                routeItem[i] = Txt(routeContent, "", 12, TextAnchor.UpperCenter, x, y - 106, 200, 16, Text2, false);
-                // START tag that floats over the next stop
-                y -= 140;
+                routeItem[i] = Txt(routeContent, "", 13, TextAnchor.UpperCenter, x, y - 132, 220, 18, Text2, false);
+                y -= 168;
                 if (i < 5)
                 {
-                    float cx = -x * 0.8f;
-                    spots.Add(new Vector2(cx, y - 30));
-                    routeChest[i] = Chest(routeContent, cx, y);
+                    // a pay chest between districts
+                    float cx = -xs[i] * 0.4f + (i % 2 == 0 ? 92 : -92);
+                    spots.Add(new Vector2(cx, y - 36));
+                    routeChest[i] = Img(routeContent, new Color(1f, 0.72f, 0.2f), UIKit.Panel(16, 6), TextAnchor.UpperCenter, cx, y, 78, 74);
                     chestBtn[i] = routeChest[i].gameObject.AddComponent<Button>(); chestBtn[i].transition = Selectable.Transition.None;
                     routeChest[i].gameObject.AddComponent<Squish>().press = new Vector2(0, -4);
-                    chestText[i] = Txt(routeContent, "", 12, TextAnchor.UpperCenter, cx, y - 62, 160, 16, Yellow, true, 1);
-                    y -= 96;
+                    chestIcon[i] = Img(routeChest[i].rectTransform, Color.white, null, TextAnchor.MiddleCenter, 0, 4, 54, 54); chestIcon[i].raycastTarget = false; chestIcon[i].preserveAspect = true;
+                    var tagBg = Img(routeContent, new Color(Ink.r, Ink.g, Ink.b, 0.85f), pill, TextAnchor.UpperCenter, cx, y - 80, 96, 24); tagBg.raycastTarget = false;
+                    chestText[i] = Txt(tagBg.rectTransform, "", 12, TextAnchor.MiddleCenter, 0, 0, 96, 24, Yellow, false);
+                    y -= 128;
                 }
             }
-            // dotted path between every stop, drawn under them
+            // dotted path between every stop, under everything
+            var dl = dotsLayer.GetComponent<RectTransform>(); dl.anchorMin = new Vector2(0.5f, 1); dl.anchorMax = new Vector2(0.5f, 1);
             for (int i = 0; i + 1 < spots.Count; i++)
             {
-                Vector2 a = spots[i], b = spots[i + 1]; int n = Mathf.Max(2, Mathf.RoundToInt((a - b).magnitude / 22f));
+                Vector2 a = spots[i], b = spots[i + 1]; int n = Mathf.Max(2, Mathf.RoundToInt((a - b).magnitude / 20f));
                 for (int k = 1; k < n; k++)
                 {
                     var p = Vector2.Lerp(a, b, k / (float)n);
-                    var d = Img(routeContent, new Color(1, 1, 1, 0.16f), null, TextAnchor.UpperCenter, p.x, p.y + 5, 10, 10); d.sprite = disc; d.raycastTarget = false;
-                    d.transform.SetAsFirstSibling(); routeDots.Add((d, i));
+                    var d = Img(dl, new Color(1, 1, 1, 0.16f), null, TextAnchor.MiddleCenter, p.x, p.y, 11, 11); d.sprite = disc; d.raycastTarget = false;
+                    routeDots.Add((d, i));
                 }
             }
-            routeContent.sizeDelta = new Vector2(0, -y + 60);
-            routeStart = Img(routeContent, Color.white, round, TextAnchor.UpperCenter, 0, 0, 92, 34);
-            routeStart.raycastTarget = false;
-            Txt(routeStart.rectTransform, "START", 17, TextAnchor.MiddleCenter, 0, 1, 92, 34, Ink, false);
+            routeContent.sizeDelta = new Vector2(0, -y + 40);
+            // START bubble with a little tail
+            routeStart = Img(routeContent, Color.white, UIKit.Panel(14, 5), TextAnchor.UpperCenter, 0, 0, 112, 46); routeStart.raycastTarget = false;
+            var tail = Img(routeStart.rectTransform, Color.white, null, TextAnchor.LowerCenter, 0, 3, 16, 16); tail.rectTransform.localRotation = Quaternion.Euler(0, 0, 45); tail.raycastTarget = false; tail.transform.SetAsFirstSibling();
+            Txt(routeStart.rectTransform, "START", 19, TextAnchor.MiddleCenter, 0, 3, 112, 40, Ink, false).font = italic;
 
             // header and footer
-            var head = Img(r, new Color(Ink.r, Ink.g, Ink.b, 0.96f), null, TextAnchor.UpperCenter, 0, 0, 0, 64); head.rectTransform.anchorMin = new Vector2(0, 1); head.rectTransform.anchorMax = new Vector2(1, 1); head.rectTransform.sizeDelta = new Vector2(0, 64);
-            Txt(head.rectTransform, "CITY ROUTE", 26, TextAnchor.MiddleLeft, 18, 0, 220, 40, Color.white, true).font = italic;
-            var wp = Img(head.rectTransform, new Color(0, 0, 0, 0.42f), pill, TextAnchor.MiddleRight, -12, 0, 124, 36);
+            var head = Img(r, new Color(0.06f, 0.04f, 0.17f, 0.97f), null, TextAnchor.UpperCenter, 0, 0, 0, 66); head.rectTransform.anchorMin = new Vector2(0, 1); head.rectTransform.anchorMax = new Vector2(1, 1);
+            head.rectTransform.offsetMin = new Vector2(-200, -66); head.rectTransform.offsetMax = new Vector2(200, 200);
+            var line = Img(head.rectTransform, new Color(Cyan.r, Cyan.g, Cyan.b, 0.35f), null, TextAnchor.LowerCenter, 0, 0, 0, 2); line.rectTransform.anchorMin = new Vector2(0, 0); line.rectTransform.anchorMax = new Vector2(1, 0); line.rectTransform.sizeDelta = new Vector2(0, 2);
+            Txt(r, "CITY ROUTE", 26, TextAnchor.UpperLeft, 18, -14, 220, 40, Color.white, true).font = italic;
+            var wp = Img(r, new Color(0, 0, 0, 0.42f), pill, TextAnchor.UpperRight, -12, -14, 124, 36);
             Tock(wp.rectTransform, 5, 26);
             routeWallet = Txt(wp.rectTransform, "0", 20, TextAnchor.MiddleLeft, 36, 0, 86, 32, Color.white, true);
-            routeBack = Btn(r, "BACK TO HQ", TextAnchor.LowerCenter, 0, 24, 220, 54, Color.white, Ink, 21);
+            var foot = Img(r, new Color(0.06f, 0.04f, 0.17f, 0.97f), null, TextAnchor.LowerCenter, 0, 0, 0, 92); foot.rectTransform.anchorMin = new Vector2(0, 0); foot.rectTransform.anchorMax = new Vector2(1, 0);
+            foot.rectTransform.offsetMin = new Vector2(-200, -200); foot.rectTransform.offsetMax = new Vector2(200, 92);
+            routeBack = Btn(r, "BACK TO HQ", TextAnchor.LowerCenter, 0, 20, 240, 58, Color.white, Ink, 21);
         }
 
         Image Tick(RectTransform parent)
@@ -275,24 +293,54 @@ namespace Overtime
             return body;
         }
 
+        /// <summary>
+        /// The delivery ticket. The parcel itself takes the stage, glowing in its district's colour; then who it's for,
+        /// the one rule that changes how you run (a coloured chip), Dot's message as a chat bubble, three star tiles, and the pay.
+        /// </summary>
         void BuildBrief()
         {
             brief = Panel("Brief"); var b = brief.GetComponent<RectTransform>();
-            Shade(b, 0.55f);
-            var card = Img(b, Card, round, TextAnchor.MiddleCenter, 0, 24, 350, 560); var c = card.rectTransform;
-            bNum = Txt(c, "DELIVERY 1", 14, TextAnchor.UpperCenter, 0, -18, 320, 20, Cyan, false);
-            bItem = Txt(c, "", 32, TextAnchor.UpperCenter, 0, -40, 320, 84, Color.white, false); bItem.font = italic;
-            bFor = Txt(c, "", 17, TextAnchor.UpperCenter, 0, -124, 320, 24, Text2, false);
-            bRuleBg = Img(c, Cyan, round, TextAnchor.UpperCenter, 0, -158, 316, 70);
-            bRule = Txt(bRuleBg.rectTransform, "", 16, TextAnchor.MiddleCenter, 0, 0, 0, 0, Ink, false); Stretch(bRule.rectTransform); bRule.rectTransform.offsetMin = new Vector2(12, 6); bRule.rectTransform.offsetMax = new Vector2(-12, -6);
-            var dot = Img(c, Panel2, round, TextAnchor.UpperCenter, 0, -238, 316, 132);
-            Txt(dot.rectTransform, "DOT // DISPATCH", 11, TextAnchor.UpperLeft, 14, -10, 200, 16, Cyan, false);
-            bDot = Txt(dot.rectTransform, "", 14, TextAnchor.UpperLeft, 14, -28, 290, 100, Color.white, false);
-            Txt(c, "STAR GOALS", 11, TextAnchor.UpperLeft, 20, -380, 200, 14, Cyan, false);
-            bGoals = Txt(c, "", 14, TextAnchor.UpperLeft, 20, -398, 310, 60, Color.white, false); bGoals.supportRichText = true; bGoals.lineSpacing = 1.1f;
-            bPay = Txt(c, "", 14, TextAnchor.LowerCenter, 0, 92, 330, 22, Color.white, false); bPay.supportRichText = true;
-            bStart = Btn(c, "START SHIFT", TextAnchor.LowerCenter, 0, 20, 300, 62, Yellow, Ink, 28);
-            bBack = Btn(b, "BACK", TextAnchor.LowerCenter, 0, 26, 120, 44, new Color(0, 0, 0, 0.45f), Color.white, 18);
+            Shade(b, 0.6f);
+            var card = Img(b, new Color(0.13f, 0.1f, 0.32f), UIKit.Panel(24, 9), TextAnchor.MiddleCenter, 0, 26, 358, 668); var c = card.rectTransform;
+            // hero stage
+            bStage = Img(c, DistrictColors[0], UIKit.Panel(18, 6), TextAnchor.UpperCenter, 0, -12, 334, 206); var st = bStage.rectTransform; bStage.raycastTarget = false;
+            var shadeIn = Img(st, new Color(0.05f, 0.03f, 0.15f, 0.55f), round, TextAnchor.MiddleCenter, 0, 3, 314, 180); shadeIn.raycastTarget = false;
+            st.gameObject.AddComponent<RectMask2D>().padding = new Vector4(6, 9, 6, 6);
+            bGlow = Img(st, Color.white, null, TextAnchor.MiddleCenter, 0, 0, 190, 190); bGlow.sprite = disc; bGlow.raycastTarget = false;
+            var floor = Img(st, new Color(0, 0, 0, 0.35f), null, TextAnchor.MiddleCenter, 0, -62, 150, 26); floor.sprite = disc; floor.raycastTarget = false;
+            bIcon = Img(st, Color.white, null, TextAnchor.MiddleCenter, 0, 6, 176, 176); bIcon.raycastTarget = false; bIcon.preserveAspect = true;
+            var jobTag = Img(st, new Color(0.05f, 0.03f, 0.15f, 0.8f), pill, TextAnchor.UpperLeft, 14, -14, 170, 26); jobTag.raycastTarget = false;
+            bNum = Txt(jobTag.rectTransform, "", 12, TextAnchor.MiddleCenter, 0, 0, 170, 24, Cyan, false);
+            bItem = Txt(c, "", 30, TextAnchor.UpperCenter, 0, -224, 330, 40, Color.white, true, 2); bItem.font = italic;
+            bItem.resizeTextForBestFit = true; bItem.resizeTextMinSize = 18; bItem.resizeTextMaxSize = 30; bItem.horizontalOverflow = HorizontalWrapMode.Wrap; bItem.verticalOverflow = VerticalWrapMode.Truncate;
+            bFor = Txt(c, "", 15, TextAnchor.UpperCenter, 0, -264, 330, 20, Text2, false);
+            // the rule
+            bRuleBg = Img(c, Cyan, UIKit.Panel(14, 5), TextAnchor.UpperCenter, 0, -292, 330, 58);
+            bRule = Txt(bRuleBg.rectTransform, "", 14, TextAnchor.MiddleCenter, 0, 0, 0, 0, Ink, false); Stretch(bRule.rectTransform); bRule.rectTransform.offsetMin = new Vector2(14, 8); bRule.rectTransform.offsetMax = new Vector2(-14, -4);
+            // Dot, the dispatcher, in a chat bubble
+            var av = Img(c, Cyan, null, TextAnchor.UpperLeft, 14, -364, 42, 42); av.sprite = UIKit.Coin; av.raycastTarget = false;
+            Txt(av.rectTransform, "DOT", 11, TextAnchor.MiddleCenter, 0, 3, 42, 30, Ink, false);
+            var bub = Img(c, new Color(0.2f, 0.18f, 0.42f), UIKit.Panel(14, 4), TextAnchor.UpperLeft, 64, -358, 280, 100); bub.raycastTarget = false;
+            Txt(bub.rectTransform, "DOT  ·  DISPATCH", 10, TextAnchor.UpperLeft, 12, -8, 200, 14, Cyan, false);
+            bDot = Txt(bub.rectTransform, "", 13, TextAnchor.UpperLeft, 12, -24, 258, 74, Color.white, false); bDot.lineSpacing = 1.02f;
+            bDot.resizeTextForBestFit = true; bDot.resizeTextMinSize = 10; bDot.resizeTextMaxSize = 13; bDot.verticalOverflow = VerticalWrapMode.Truncate;
+            // star goals as three tiles
+            string[] names = { "DELIVER", "GREAT", "PERFECT" };
+            for (int i = 0; i < 3; i++)
+            {
+                var tile = Img(c, new Color(0.2f, 0.18f, 0.42f), UIKit.Panel(12, 4), TextAnchor.UpperCenter, (i - 1) * 110, -472, 102, 68); tile.raycastTarget = false; bGoalTile[i] = tile;
+                bGoalPip[i] = Img(tile.rectTransform, Yellow, null, TextAnchor.UpperCenter, 0, -14, 14, 14); bGoalPip[i].rectTransform.localRotation = Quaternion.Euler(0, 0, 45); bGoalPip[i].raycastTarget = false;
+                bGoalText[i] = Txt(tile.rectTransform, "", 16, TextAnchor.UpperCenter, 0, -26, 100, 20, Color.white, false);
+                Txt(tile.rectTransform, names[i], 10, TextAnchor.UpperCenter, 0, -46, 100, 14, Text2, false);
+            }
+            bGoals = Txt(c, "", 1, TextAnchor.UpperLeft, 0, 0, 1, 1, Color.clear, false);
+            // pay
+            var payBg = Img(c, new Color(0.05f, 0.03f, 0.15f, 0.7f), pill, TextAnchor.UpperCenter, 0, -552, 260, 34); payBg.raycastTarget = false;
+            Tock(payBg.rectTransform, 8, 24);
+            bPay = Txt(payBg.rectTransform, "", 14, TextAnchor.MiddleLeft, 40, 0, 216, 30, Color.white, false); bPay.supportRichText = true;
+            bStart = Btn(c, "START SHIFT", TextAnchor.LowerCenter, 0, 18, 322, 64, Yellow, Ink, 28);
+            bStart.GetComponentInChildren<Text>().font = italic;
+            bBack = Btn(b, "BACK", TextAnchor.LowerCenter, 0, 10, 130, 44, new Color(0.3f, 0.3f, 0.5f), Color.white, 17);
         }
 
         void BuildResults()
@@ -306,11 +354,11 @@ namespace Overtime
                 var back = Img(r, new Color(1, 1, 1, 0.14f), null, TextAnchor.MiddleCenter, (i - 1) * 54, 236, 34, 34); back.rectTransform.localRotation = Quaternion.Euler(0, 0, 45); back.raycastTarget = false;
                 rPips[i] = Img(r, Yellow, null, TextAnchor.MiddleCenter, (i - 1) * 54, 236, 34, 34); rPips[i].rectTransform.localRotation = Quaternion.Euler(0, 0, 45); rPips[i].raycastTarget = false;
             }
-            var card = Img(r, Card, round, TextAnchor.MiddleCenter, 0, 20, 350, 350); var c = card.rectTransform;
+            var card = Img(r, Deep, UIKit.Panel(22, 8), TextAnchor.MiddleCenter, 0, 20, 350, 350); var c = card.rectTransform;
             rQuote = Txt(c, "", 15, TextAnchor.UpperCenter, 0, -16, 318, 84, Text2, false);
             rLines = Txt(c, "", 18, TextAnchor.UpperLeft, 24, -104, 220, 150, Color.white, false); rLines.lineSpacing = 1.15f;
             rAmounts = Txt(c, "", 18, TextAnchor.UpperRight, -24, -104, 120, 150, Yellow, false); rAmounts.lineSpacing = 1.15f;
-            var tot = Img(c, Yellow, round, TextAnchor.LowerCenter, 0, 16, 318, 56);
+            var tot = Img(c, Yellow, UIKit.Panel(14, 5), TextAnchor.LowerCenter, 0, 16, 318, 56);
             rTotal = Txt(tot.rectTransform, "", 26, TextAnchor.MiddleCenter, 0, 0, 318, 56, Ink, false);
             rRank = Txt(r, "", 12, TextAnchor.MiddleCenter, 0, -172, 330, 16, Text2, false);
             var rb = Img(r, new Color(0, 0, 0, 0.45f), pill, TextAnchor.MiddleCenter, 0, -190, 300, 8);
@@ -331,7 +379,7 @@ namespace Overtime
             sWallet = Txt(wp.rectTransform, "0", 21, TextAnchor.MiddleLeft, 40, 0, 104, 32, Color.white, true);
             for (int i = 0; i < 7; i++)
             {
-                sBg[i] = Img(s, Card, round, TextAnchor.UpperCenter, 0, -148 - i * 74, 352, 66);
+                sBg[i] = Img(s, Deep, UIKit.Panel(22, 8), TextAnchor.UpperCenter, 0, -148 - i * 74, 352, 66);
                 sName[i] = Txt(sBg[i].rectTransform, "", 16, TextAnchor.MiddleLeft, 14, 0, 232, 60, Color.white, false); sName[i].supportRichText = true;
                 buy[i] = Btn(sBg[i].rectTransform, "", TextAnchor.MiddleRight, -10, 2, 92, 44, Yellow, Ink, 18);
                 sPrice[i] = buy[i].GetComponentInChildren<Text>();
@@ -343,10 +391,10 @@ namespace Overtime
         {
             intro = Panel("Intro"); var r = intro.GetComponent<RectTransform>();
             Shade(r, 0.62f);
-            var card = Img(r, Card, round, TextAnchor.MiddleCenter, 0, 10, 350, 430); var c = card.rectTransform;
+            var card = Img(r, Deep, UIKit.Panel(22, 8), TextAnchor.MiddleCenter, 0, 10, 350, 480); var c = card.rectTransform;
             Txt(c, "CONGRATULATIONS", 15, TextAnchor.UpperCenter, 0, -22, 320, 22, Cyan, false);
             Txt(c, "YOU OWN A\nDELIVERY COMPANY", 28, TextAnchor.UpperCenter, 0, -46, 320, 84, Color.white, false).font = italic;
-            introText = Txt(c, "", 16, TextAnchor.UpperLeft, 22, -146, 306, 190, Text2, false); introText.lineSpacing = 1.1f;
+            introText = Txt(c, "", 15, TextAnchor.UpperLeft, 22, -140, 306, 230, Text2, false); introText.lineSpacing = 1.05f;
             introGo = Btn(c, "CLOCK IN", TextAnchor.LowerCenter, 0, 22, 300, 64, Yellow, Ink, 28);
         }
 
@@ -456,10 +504,8 @@ namespace Overtime
         Button Btn(RectTransform parent, string s, TextAnchor anchor, float x, float y, float w, float h, Color bg, Color fg, int size)
         {
             // a dark slab underneath gives every button a chunky plastic lip; pressing pushes the face down onto it
-            var lip = Img(parent, Ink, round, anchor, x, y - 5, w, h);
-            var img = Img(parent, bg, round, anchor, x, y, w, h); var b = img.gameObject.AddComponent<Button>();
-            lip.raycastTarget = false;
-            var t = Txt(img.rectTransform, s, size, TextAnchor.MiddleCenter, 0, 0, w, h, fg, false);
+            var img = Img(parent, bg, UIKit.Panel(16, 6), anchor, x, y, w, h); var b = img.gameObject.AddComponent<Button>(); b.targetGraphic = img;
+            var t = Txt(img.rectTransform, s, size, TextAnchor.MiddleCenter, 0, 3, w, h, fg, false);
             b.transition = Selectable.Transition.None;
             img.gameObject.AddComponent<Squish>().press = new Vector2(0, -4);
             return b;
@@ -566,11 +612,15 @@ namespace Overtime
             {
                 for (int i = 0; i < 6; i++)
                     if (!routeNode[i].GetComponent<Squish>().held)
-                        routeNode[i].transform.localScale = Vector3.one * (i == pulsePin ? 1 + 0.06f * (0.5f + 0.5f * Mathf.Sin(now * 5)) : 1);
+                        routeNode[i].transform.localScale = Vector3.one * (i == pulsePin ? 1 + 0.045f * (0.5f + 0.5f * Mathf.Sin(now * 3.9f)) : 1);
                 if (pulsePin >= 0)
                 {
                     var n = routeNode[pulsePin].rectTransform;
-                    routeStart.rectTransform.anchoredPosition = n.anchoredPosition + new Vector2(0, 50 + 5 * Mathf.Sin(now * 4));
+                    routeStart.rectTransform.anchoredPosition = n.anchoredPosition + new Vector2(0, 62 + 4 * Mathf.Sin(now * 3.9f));
+                    float br = 0.5f + 0.5f * Mathf.Sin(now * 3.9f);
+                    routeHalo.rectTransform.anchoredPosition = n.anchoredPosition + new Vector2(0, 14);
+                    routeHalo.rectTransform.localScale = Vector3.one * (0.96f + 0.1f * br);
+                    var hc = DistrictColors[pulsePin]; routeHalo.color = new Color(hc.r, hc.g, hc.b, 0.25f + 0.3f * (1 - br));
                 }
                 for (int i = 0; i < 5; i++)
                     if (chestReady[i]) routeChest[i].transform.localRotation = Quaternion.Euler(0, 0, Mathf.Sin(now * 14) * 7 * Mathf.Clamp01(Mathf.Sin(now * 2.2f) * 3));

@@ -214,22 +214,28 @@ namespace Overtime
             {
                 var l = Levels.All[i]; bool open = Unlocked(i); int st = Stars(l.id); bool done = st > 0;
                 var c = Hud.DistrictColors[i];
-                hud.routeNode[i].color = done ? Hud.Yellow : open ? c : new Color(0.24f, 0.24f, 0.38f);
-                hud.cardText[i].text = done ? "" : open ? (i + 1).ToString() : "<color=#7a7aa0>?</color>";
+                hud.routeNode[i].color = done ? Hud.Yellow : open ? c : new Color(0.3f, 0.3f, 0.45f);
+                var icon = UIKit.Icon(l.delivery.itemModel);
+                hud.routeIcon[i].sprite = icon; hud.routeIcon[i].color = open ? Color.white : new Color(0.12f, 0.1f, 0.25f, 0.85f);
+                hud.routeBannerIcon[i].sprite = icon; hud.routeBannerIcon[i].color = open ? Color.white : new Color(0.1f, 0.08f, 0.2f, 0.6f);
+                hud.routeBan[i].color = open ? c : new Color(0.32f, 0.32f, 0.48f);
+                hud.cardText[i].text = icon == null ? (open ? (i + 1).ToString() : "?") : "";
                 hud.routeTick[i].gameObject.SetActive(done);
+                hud.routeLock[i].gameObject.SetActive(!open);
                 Hud.SetPips(hud.cardPips[i], st, true);
-                hud.routeItem[i].text = open ? l.delivery.item : "LOCKED";
+                hud.routeItem[i].text = open ? l.delivery.item : "Locked";
                 hud.routeBanner[i].color = open ? Color.white : new Color(0.6f, 0.6f, 0.75f);
             }
             for (int i = 0; i < 5; i++)
             {
                 bool earned = Stars(Levels.All[i].id) > 0, got = ChestOpen(i);
                 hud.chestReady[i] = earned && !got;
-                hud.routeChest[i].color = got ? new Color(0.3f, 0.22f, 0.16f) : earned ? new Color(0.62f, 0.36f, 0.12f) : new Color(0.3f, 0.3f, 0.42f);
-                hud.chestText[i].text = got ? "PAID OUT" : earned ? $"TAP: +{ChestPay(i)}" : $"+{ChestPay(i)} TOCKS";
+                hud.routeChest[i].color = got ? new Color(0.35f, 0.32f, 0.45f) : earned ? new Color(1f, 0.72f, 0.2f) : new Color(0.42f, 0.42f, 0.58f);
+                hud.chestIcon[i].sprite = UIKit.Icon("Coin_C", 20); hud.chestIcon[i].color = got ? new Color(1, 1, 1, 0.35f) : earned ? Color.white : new Color(0.15f, 0.13f, 0.3f, 0.8f);
+                hud.chestText[i].text = got ? "PAID OUT" : earned ? $"TAP  +{ChestPay(i)}" : $"+{ChestPay(i)}";
                 hud.chestText[i].color = got ? Hud.Text2 : Hud.Yellow;
             }
-            foreach (var (dot, seg) in hud.routeDots) dot.color = seg < nx * 2 ? new Color(1f, 0.82f, 0.12f, 0.7f) : new Color(1, 1, 1, 0.16f);
+            foreach (var (dot, seg) in hud.routeDots) dot.color = seg < nx * 2 ? new Color(1f, 0.82f, 0.12f, 0.85f) : new Color(1, 1, 1, 0.14f);
             SetMode(Mode.Route);
             // scroll so the next stop sits a third of the way down
             Canvas.ForceUpdateCanvases();
@@ -258,10 +264,17 @@ namespace Overtime
             hud.bRule.text = d.rule;
             hud.bRuleBg.color = d.kind switch { ParcelKind.Heavy => new Color(1f, 0.72f, 0.3f), ParcelKind.Fragile => new Color(0.75f, 0.9f, 1f), ParcelKind.Hot => new Color(1f, 0.55f, 0.45f), ParcelKind.Live => new Color(0.7f, 1f, 0.7f), ParcelKind.Ticking => new Color(1f, 0.6f, 0.85f), _ => new Color(0.86f, 0.9f, 1f) };
             hud.bDot.text = d.briefing;
-            hud.bPay.text = $"PAYS <color=#ffc21a>{d.pay} TOCKS</color> + TIME + PICKUPS";
+            hud.bPay.text = $"<size=19><color=#ffd21e>{d.pay}</color></size>  base pay  + time + pickups";
+            var dc = Hud.DistrictColors[Mathf.Clamp(d.district, 0, 5)];
+            hud.bStage.color = dc; hud.bGlow.color = new Color(1, 1, 1, 0.22f); hud.bGlow.color = new Color(dc.r, dc.g, dc.b, 0.55f);
+            hud.bIcon.sprite = UIKit.Icon(d.itemModel, 30);
             int have = Stars(l.id);
-            string G(int k, string s) => (have > k ? "<color=#ffd21e>◆</color> " : "<color=#6a70a0>◇</color> ") + s;
-            hud.bGoals.text = $"{G(0, $"Deliver it and score {l.stars[0]:N0}")}\n{G(1, $"Score {l.stars[1]:N0}")}\n{G(2, $"Score {l.stars[2]:N0}")}";
+            for (int k = 0; k < 3; k++)
+            {
+                hud.bGoalText[k].text = l.stars[k].ToString("N0");
+                hud.bGoalPip[k].color = have > k ? Hud.Yellow : new Color(1, 1, 1, 0.22f);
+                hud.bGoalTile[k].color = have > k ? new Color(0.36f, 0.28f, 0.1f) : new Color(0.2f, 0.18f, 0.42f);
+            }
             SetMode(Mode.Brief);
         }
 
