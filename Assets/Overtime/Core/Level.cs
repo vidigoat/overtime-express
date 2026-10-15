@@ -186,14 +186,16 @@ namespace Overtime.Core
             }
             foreach (var r in L.rails) for (float cs = r.s0 + 2; cs < r.s1 - 1; cs += 2.2f) L.coins.Add(new Coin { s = cs, x = r.lane * lw, y = r.y + 1.0f });
             foreach (var w in L.walls) for (float cs = w.s0 + 2; cs < w.s1 - 1; cs += 2.2f) L.coins.Add(new Coin { s = cs, x = w.side * 3.35f, y = w.y + 1.6f });
-            // one power-up roughly every 150 m, in a clear stretch, cycling through the four kinds
-            float next = 70; int kind = (int)(seed % 4);
+            // three power-ups a run at most, spread evenly through clear stretches, cycling through the four kinds:
+            // rare enough that grabbing one is a moment
+            float gap = Math.Max(140f, (L.length - 60f) / 3f), next = Math.Max(70f, gap * 0.55f); int kind = (int)(seed % 4);
             foreach (var sp in spots)
             {
+                if (L.powers.Count >= 3) break;
                 if (sp.s < next || sp.s > L.length - 30) continue;
                 L.powers.Add(new Power { kind = (PowerKind)(kind++ % 4), s = sp.s, lane = sp.lane, y = sp.y });
                 L.coins.RemoveAll(c => Math.Abs(c.s - sp.s) < 2.4f && Math.Abs(c.x - sp.lane * lw) < 0.5f);
-                next = sp.s + 150;
+                next = sp.s + gap;
             }
             L.coins.Sort((a, b) => a.s.CompareTo(b.s));
             return;

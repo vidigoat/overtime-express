@@ -13,7 +13,7 @@ namespace Overtime.Core
             var b = new LevelBuilder("l1", "FIRST SHIFT", "Day one of your own company.", 35, 0, 0, 0);
             b.Hint(4, "SWIPE LEFT / RIGHT TO SWITCH LANES");
             b.Roof(100, 0, R(40, "cB."), R(62, "BBc"), R(84, ".c."));
-            b.Hint(0, "SWIPE UP (OR TAP) TO JUMP");
+            b.Hint(0, "SWIPE UP TO JUMP");
             b.Roof(70, 0, R(22, "JJJ"), R(38, "JJJ"), R(52, ".c."));
             b.Hint(0, "SWIPE DOWN TO SLIDE");
             b.Roof(72, 0, R(22, "SSS"), R(38, "SSS"), R(54, "JJJ"));
@@ -26,7 +26,7 @@ namespace Overtime.Core
             b.Hint(-16, "SWIPE RIGHT AGAIN TO RUN THE WALL");
             b.WallGap(16, 1);
             b.Roof(74, 0, R(14, "..c"), R(28, "SSS"), R(44, "JBJ"));
-            b.Hint(-24, "BIG GAP: JUMP, THEN TAP IN THE AIR TO DASH");
+            b.Hint(-24, "BIG GAP: SWIPE UP, THEN SWIPE UP AGAIN TO DASH");
             b.Gap(12.5f);
             b.Roof(72, 0, R(22, ".c."), R(34, "BJB"), R(48, "SSS"), R(60, "c.."));
             b.Hint(-14, "CHAIN MOVES TO EARN TIME");

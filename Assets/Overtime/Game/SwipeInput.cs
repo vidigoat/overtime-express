@@ -8,13 +8,13 @@ namespace Overtime
     /// <summary>
     /// One-thumb controls. A swipe fires the moment the finger has travelled far enough, and one swipe is exactly
     /// one move: a drag that keeps going can chain into the other axis (right, then up) but never repeats itself.
-    /// A tap is a jump; a finger held still is slow-mo. Keyboard mirrors it for desktop.
+    /// Swipe up to jump, swipe up again in the air to dash; a finger held still is slow-mo. Keyboard mirrors it for desktop.
     /// </summary>
     public class SwipeInput
     {
         public Action<Swipe> onSwipe = _ => { };
         public bool slow;
-        bool down, fired, lastHoriz, touchSlow, lastUp, dashedThisDrag;
+        bool down, fired, lastHoriz, touchSlow, lastUp;
         Vector2 start; float downT;
 
         public void Update()
@@ -36,16 +36,15 @@ namespace Overtime
                 // thresholds in physical size so the gesture feels the same on every phone
                 // sized from the screen, not reported DPI: browsers on phones report DPI unreliably
                 float th = Mathf.Max(14f, Mathf.Min(Screen.width, Screen.height) * 0.045f);
-                if (ptr.press.wasPressedThisFrame) { down = true; fired = false; touchSlow = false; lastUp = false; dashedThisDrag = false; start = pos; downT = Time.unscaledTime; }
+                if (ptr.press.wasPressedThisFrame) { down = true; fired = false; touchSlow = false; lastUp = false; start = pos; downT = Time.unscaledTime; }
                 else if (down && ptr.press.isPressed)
                 {
                     Vector2 d = pos - start; bool horiz = Mathf.Abs(d.x) > Mathf.Abs(d.y);
                     bool go = false;
                     if (fired)
                     {
-                        // one exception to "no repeats": keep flicking upward well past the jump and it becomes jump-then-dash in one motion
-                        if (!horiz && !lastHoriz && lastUp && d.y >= th * 2.6f && !dashedThisDrag) { go = true; dashedThisDrag = true; }
-                        else if (horiz == lastHoriz) { if (horiz) start.x = pos.x; else if (!(lastUp && d.y > 0 && !dashedThisDrag)) start.y = pos.y; }
+                        // one swipe is one move: a long swipe up is still just a jump; dashing takes a second swipe
+                        if (horiz == lastHoriz) { if (horiz) start.x = pos.x; else start.y = pos.y; }
                         else if (Mathf.Abs(horiz ? d.x : d.y) >= th * 2) go = true;
                     }
                     else if (Mathf.Abs(d.x) >= th || Mathf.Abs(d.y) >= th) go = true;
@@ -61,10 +60,10 @@ namespace Overtime
                 {
                     if (!fired && !touchSlow)
                     {
-                        // a short quick flick that never crossed the threshold still counts; a still tap is a jump (or a dash in the air)
+                        // a short quick flick that never crossed the threshold still counts; a plain tap does nothing,
+                        // so a thumb landing on the glass never jumps by accident
                         Vector2 d = pos - start;
-                        if (d.magnitude >= th * 0.45f) onSwipe(Mathf.Abs(d.x) > Mathf.Abs(d.y) ? (d.x > 0 ? Swipe.Right : Swipe.Left) : d.y > 0 ? Swipe.Up : Swipe.Down);
-                        else onSwipe(Swipe.Up);
+                        if (d.magnitude >= th * 0.45f && Time.unscaledTime - downT < 0.35f) onSwipe(Mathf.Abs(d.x) > Mathf.Abs(d.y) ? (d.x > 0 ? Swipe.Right : Swipe.Left) : d.y > 0 ? Swipe.Up : Swipe.Down);
                     }
                     down = false; touchSlow = false;
                 }

@@ -230,10 +230,12 @@ namespace Overtime
             {
                 bool earned = Stars(Levels.All[i].id) > 0, got = ChestOpen(i);
                 hud.chestReady[i] = earned && !got;
-                hud.routeChest[i].color = got ? new Color(0.35f, 0.32f, 0.45f) : earned ? new Color(1f, 0.72f, 0.2f) : new Color(0.42f, 0.42f, 0.58f);
-                hud.chestIcon[i].sprite = UIKit.Icon("Coin_C", 20); hud.chestIcon[i].color = got ? new Color(1, 1, 1, 0.35f) : earned ? Color.white : new Color(0.15f, 0.13f, 0.3f, 0.8f);
-                hud.chestText[i].text = got ? "PAID OUT" : earned ? $"TAP  +{ChestPay(i)}" : $"+{ChestPay(i)}";
-                hud.chestText[i].color = got ? Hud.Text2 : Hud.Yellow;
+                hud.routeChest[i].color = got ? new Color(0.36f, 0.85f, 0.55f) : earned ? new Color(1f, 0.78f, 0.2f) : new Color(0.3f, 0.3f, 0.45f);
+                hud.chestIcon[i].color = got ? new Color(1f, 0.95f, 0.7f) : earned ? Hud.Yellow : new Color(0.2f, 0.2f, 0.32f);
+                hud.chestTick[i].gameObject.SetActive(got);
+                hud.chestText[i].text = got ? "PAID" : earned ? $"TAP  +{ChestPay(i)}" : $"+{ChestPay(i)}";
+                hud.chestText[i].color = got ? Hud.Green : earned ? Hud.Yellow : Hud.Text2;
+                hud.chestTag[i].color = earned && !got ? new Color(0.35f, 0.22f, 0.02f, 0.95f) : new Color(Hud.Ink.r, Hud.Ink.g, Hud.Ink.b, 0.85f);
             }
             foreach (var (dot, seg) in hud.routeDots) dot.color = seg < nx * 2 ? new Color(1f, 0.82f, 0.12f, 0.85f) : new Color(1, 1, 1, 0.14f);
             SetMode(Mode.Route);

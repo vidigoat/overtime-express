@@ -33,7 +33,7 @@ namespace Overtime
         public Button shopBtn, introGo, playBtn, routeBtn, routeBack;
         // route
         public GameObject routeScreen; public RectTransform routeContent; public ScrollRect routeScroll; public Text routeWallet;
-        public Image[] routeNode = new Image[6], routeTick = new Image[6], routeChest = new Image[5], routeIcon = new Image[6], routeBannerIcon = new Image[6], routeLock = new Image[6], routeBan = new Image[6], chestIcon = new Image[5]; public Image routeStart, routeHalo;
+        public Image[] routeNode = new Image[6], routeTick = new Image[6], routeChest = new Image[5], routeIcon = new Image[6], routeBannerIcon = new Image[6], routeLock = new Image[6], routeBan = new Image[6], chestIcon = new Image[5]; public Image routeStart, routeHalo; public Image[] chestTick = new Image[5], chestTag = new Image[5];
         public Text[] routeBanner = new Text[6], routeItem = new Text[6], chestText = new Text[5]; public Button[] chestBtn = new Button[5];
         public readonly List<(Image dot, int seg)> routeDots = new List<(Image, int)>();
         public Text introText;
@@ -236,12 +236,17 @@ namespace Overtime
                     // a pay chest between districts
                     float cx = -xs[i] * 0.4f + (i % 2 == 0 ? 92 : -92);
                     spots.Add(new Vector2(cx, y - 36));
-                    routeChest[i] = Img(routeContent, new Color(1f, 0.72f, 0.2f), UIKit.Panel(16, 6), TextAnchor.UpperCenter, cx, y, 78, 74);
-                    chestBtn[i] = routeChest[i].gameObject.AddComponent<Button>(); chestBtn[i].transition = Selectable.Transition.None;
+                    // a pay stop: a gold coin carrying a big Tock, the game's own currency
+                    routeChest[i] = Img(routeContent, new Color(1f, 0.78f, 0.2f), null, TextAnchor.UpperCenter, cx, y, 86, 86); routeChest[i].sprite = UIKit.Coin;
+                    chestBtn[i] = routeChest[i].gameObject.AddComponent<Button>(); chestBtn[i].transition = Selectable.Transition.None; chestBtn[i].targetGraphic = routeChest[i];
                     routeChest[i].gameObject.AddComponent<Squish>().press = new Vector2(0, -4);
-                    chestIcon[i] = Img(routeChest[i].rectTransform, Color.white, null, TextAnchor.MiddleCenter, 0, 4, 54, 54); chestIcon[i].raycastTarget = false; chestIcon[i].preserveAspect = true;
-                    var tagBg = Img(routeContent, new Color(Ink.r, Ink.g, Ink.b, 0.85f), pill, TextAnchor.UpperCenter, cx, y - 80, 96, 24); tagBg.raycastTarget = false;
-                    chestText[i] = Txt(tagBg.rectTransform, "", 12, TextAnchor.MiddleCenter, 0, 0, 96, 24, Yellow, false);
+                    chestIcon[i] = Tock(routeChest[i].rectTransform, 0, 44, TextAnchor.MiddleCenter); chestIcon[i].rectTransform.anchoredPosition = new Vector2(0, 6);
+                    var ct = Img(routeChest[i].rectTransform, Green, null, TextAnchor.MiddleCenter, 30, -26, 30, 30); ct.sprite = UIKit.Coin; ct.raycastTarget = false;
+                    var ctk = Tick(ct.rectTransform); ctk.rectTransform.localScale = Vector3.one * 0.5f; ctk.rectTransform.anchoredPosition = new Vector2(1, 3);
+                    foreach (var im in ctk.GetComponentsInChildren<Image>()) if (im != ctk) im.color = Color.white;
+                    chestTick[i] = ct;
+                    var tagBg = Img(routeContent, new Color(Ink.r, Ink.g, Ink.b, 0.85f), pill, TextAnchor.UpperCenter, cx, y - 90, 100, 26); tagBg.raycastTarget = false; chestTag[i] = tagBg;
+                    chestText[i] = Txt(tagBg.rectTransform, "", 13, TextAnchor.MiddleCenter, 0, 0, 100, 26, Yellow, false);
                     y -= 128;
                 }
             }
@@ -346,7 +351,8 @@ namespace Overtime
         void BuildResults()
         {
             results = Panel("Results"); var r = results.GetComponent<RectTransform>();
-            Shade(r, 0.5f);
+            var rbg = Img(r, new Color(0.15f, 0.09f, 0.36f), null, TextAnchor.MiddleCenter, 0, 0, 0, 0); rbg.sprite = UIKit.Gradient; Stretch(rbg.rectTransform);
+            rbg.rectTransform.offsetMin = new Vector2(-200, -200); rbg.rectTransform.offsetMax = new Vector2(200, 200);
             rTitle = Txt(r, "DELIVERED!", 54, TextAnchor.MiddleCenter, 0, 300, 390, 70, Color.white, true, 4); Center(rTitle); rTitle.font = italic;
             rPips = new Image[3];
             for (int i = 0; i < 3; i++)
@@ -400,12 +406,13 @@ namespace Overtime
 
         // ───────── building blocks ─────────
         /// <summary>The Tock icon: a gold hex token with a dark face and clock hands.</summary>
-        void Tock(RectTransform parent, float x, float size)
+        Image Tock(RectTransform parent, float x, float size, TextAnchor anchor = TextAnchor.MiddleLeft)
         {
-            var o = Img(parent, Yellow, null, TextAnchor.MiddleLeft, x, 0, size, size); o.sprite = hex; o.raycastTarget = false;
+            var o = Img(parent, Yellow, null, anchor, x, 0, size, size); o.sprite = hex; o.raycastTarget = false;
             var i = Img(o.rectTransform, new Color(0.16f, 0.09f, 0.02f), null, TextAnchor.MiddleCenter, 0, 0, size * 0.66f, size * 0.66f); i.sprite = hex; i.raycastTarget = false;
             var h1 = Img(i.rectTransform, Color.white, null, TextAnchor.MiddleCenter, 0, size * 0.11f, size * 0.09f, size * 0.26f); h1.raycastTarget = false;
             var h2 = Img(i.rectTransform, Color.white, null, TextAnchor.MiddleCenter, size * 0.08f, -size * 0.03f, size * 0.09f, size * 0.2f); h2.rectTransform.localRotation = Quaternion.Euler(0, 0, 62); h2.raycastTarget = false;
+            return o;
         }
 
         static Sprite HexSprite(int size)
@@ -623,8 +630,8 @@ namespace Overtime
                     var hc = DistrictColors[pulsePin]; routeHalo.color = new Color(hc.r, hc.g, hc.b, 0.25f + 0.3f * (1 - br));
                 }
                 for (int i = 0; i < 5; i++)
-                    if (chestReady[i]) routeChest[i].transform.localRotation = Quaternion.Euler(0, 0, Mathf.Sin(now * 14) * 7 * Mathf.Clamp01(Mathf.Sin(now * 2.2f) * 3));
-                    else routeChest[i].transform.localRotation = Quaternion.identity;
+                    if (!routeChest[i].GetComponent<Squish>().held)
+                        routeChest[i].transform.localScale = Vector3.one * (chestReady[i] ? 1 + 0.07f * Mathf.Abs(Mathf.Sin(now * 3.2f + i)) : 1);
             }
             if (tut.activeSelf)
             {
