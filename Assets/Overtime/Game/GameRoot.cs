@@ -133,26 +133,51 @@ namespace Overtime
             }
         }
 
-        /// <summary>A little delivery bike from primitives: the thing you are saving for.</summary>
-        static GameObject BuildBike(Transform parent)
+        /// <summary>
+        /// The bike you save up for: a low neon courier e-bike. Glowing spinning rims, a swept red fairing with a headlight,
+        /// the company's delivery box on the back with the same glowing clock as Kip's pack, and underglow.
+        /// </summary>
+        Transform[] bikeWheels = new Transform[0];
+        GameObject BuildBike(Transform parent)
         {
             var g = new GameObject("Bike"); g.transform.SetParent(parent, false);
-            void Part(PrimitiveType type, Vector3 pos, Vector3 scale, Vector3 rot, Color c)
+            Transform Part(PrimitiveType type, Transform into, Vector3 pos, Vector3 scale, Vector3 rot, Material m)
             {
-                var p = GameObject.CreatePrimitive(type); Destroy(p.GetComponent<Collider>()); p.transform.SetParent(g.transform, false);
+                var p = GameObject.CreatePrimitive(type); Destroy(p.GetComponent<Collider>()); p.transform.SetParent(into, false);
                 p.transform.localPosition = pos; p.transform.localScale = scale; p.transform.localRotation = Quaternion.Euler(rot);
-                p.GetComponent<MeshRenderer>().sharedMaterial = Mats.Lit(c, 0.3f);
+                var r = p.GetComponent<MeshRenderer>(); r.sharedMaterial = m; r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                return p.transform;
             }
-            Color red = Mats.Hex(0xff3b4e), dark = Mats.Hex(0x23264a), white = Mats.Hex(0xf4f6ff), yellow = Mats.Hex(0xffd21e);
-            Part(PrimitiveType.Cylinder, new Vector3(0, 0.36f, 0.72f), new Vector3(0.72f, 0.07f, 0.72f), new Vector3(0, 0, 90), dark);
-            Part(PrimitiveType.Cylinder, new Vector3(0, 0.36f, -0.72f), new Vector3(0.72f, 0.07f, 0.72f), new Vector3(0, 0, 90), dark);
-            Part(PrimitiveType.Cylinder, new Vector3(0, 0.36f, 0.72f), new Vector3(0.3f, 0.09f, 0.3f), new Vector3(0, 0, 90), yellow);
-            Part(PrimitiveType.Cylinder, new Vector3(0, 0.36f, -0.72f), new Vector3(0.3f, 0.09f, 0.3f), new Vector3(0, 0, 90), yellow);
-            Part(PrimitiveType.Cube, new Vector3(0, 0.62f, 0), new Vector3(0.16f, 0.14f, 1.3f), Vector3.zero, red);
-            Part(PrimitiveType.Cube, new Vector3(0, 0.82f, -0.28f), new Vector3(0.3f, 0.1f, 0.5f), Vector3.zero, dark);
-            Part(PrimitiveType.Cube, new Vector3(0, 0.92f, 0.62f), new Vector3(0.1f, 0.7f, 0.1f), new Vector3(-18, 0, 0), white);
-            Part(PrimitiveType.Cube, new Vector3(0, 1.26f, 0.52f), new Vector3(0.74f, 0.07f, 0.07f), Vector3.zero, dark);
-            Part(PrimitiveType.Cube, new Vector3(0, 0.98f, -0.82f), new Vector3(0.5f, 0.42f, 0.44f), Vector3.zero, yellow);
+            Material red = Mats.Lit(Mats.Hex(0xff2d55), 0.25f), dark = Mats.Lit(Mats.Hex(0x1a1c33), 0.5f), white = Mats.Lit(Mats.Hex(0xf4f6ff), 0.3f), yellow = Mats.Lit(Mats.Hex(0xffc81e), 0.35f),
+                rim = Mats.Glow(Mats.Hex(0x39e6ff), 2.4f), head = Mats.Glow(Mats.Hex(0xfff6d0), 3.2f), tail = Mats.Glow(Mats.Hex(0xff2040), 3f), face = Mats.Glow(Mats.Hex(0x39e6ff), 1.8f);
+            var wheels = new List<Transform>();
+            foreach (float z in new[] { 0.74f, -0.7f })
+            {
+                var hub = new GameObject("Wheel").transform; hub.SetParent(g.transform, false); hub.localPosition = new Vector3(0, 0.36f, z);
+                Part(PrimitiveType.Cylinder, hub, Vector3.zero, new Vector3(0.76f, 0.07f, 0.76f), new Vector3(0, 0, 90), dark);          // tyre
+                Part(PrimitiveType.Cylinder, hub, Vector3.zero, new Vector3(0.6f, 0.08f, 0.6f), new Vector3(0, 0, 90), rim);            // glowing rim
+                Part(PrimitiveType.Cylinder, hub, Vector3.zero, new Vector3(0.46f, 0.09f, 0.46f), new Vector3(0, 0, 90), dark);         // dark disc
+                Part(PrimitiveType.Cube, hub, Vector3.zero, new Vector3(0.1f, 0.44f, 0.06f), Vector3.zero, white);                          // spokes, so you can see it spin
+                Part(PrimitiveType.Cube, hub, Vector3.zero, new Vector3(0.1f, 0.06f, 0.44f), Vector3.zero, white);
+                wheels.Add(hub);
+            }
+            bikeWheels = wheels.ToArray();
+            var t = g.transform;
+            Part(PrimitiveType.Cube, t, new Vector3(0, 0.5f, 0.02f), new Vector3(0.2f, 0.16f, 1.25f), Vector3.zero, dark);                    // chassis
+            Part(PrimitiveType.Cube, t, new Vector3(0, 0.7f, 0.42f), new Vector3(0.36f, 0.42f, 0.5f), new Vector3(-28, 0, 0), red);           // swept front fairing
+            Part(PrimitiveType.Cube, t, new Vector3(0, 0.62f, -0.12f), new Vector3(0.32f, 0.2f, 0.62f), Vector3.zero, red);                   // tank / body
+            Part(PrimitiveType.Cube, t, new Vector3(0, 0.76f, -0.24f), new Vector3(0.28f, 0.08f, 0.5f), Vector3.zero, dark);                  // seat
+            Part(PrimitiveType.Cube, t, new Vector3(0, 0.66f, 0.66f), new Vector3(0.07f, 0.62f, 0.07f), new Vector3(-22, 0, 0), white);       // fork
+            Part(PrimitiveType.Cube, t, new Vector3(0, 1.0f, 0.56f), new Vector3(0.72f, 0.06f, 0.06f), Vector3.zero, dark);                   // handlebar
+            Part(PrimitiveType.Cube, t, new Vector3(0, 0.84f, 0.7f), new Vector3(0.22f, 0.12f, 0.06f), Vector3.zero, head);                   // headlight
+            Part(PrimitiveType.Cube, t, new Vector3(0, 0.62f, -0.48f), new Vector3(0.3f, 0.07f, 0.1f), Vector3.zero, tail);                   // tail light
+            // the delivery box sits low on the rack so the rider stays in view from the chase camera
+            Part(PrimitiveType.Cube, t, new Vector3(0, 0.8f, -0.78f), new Vector3(0.44f, 0.3f, 0.36f), Vector3.zero, yellow);                 // delivery box
+            Part(PrimitiveType.Cube, t, new Vector3(0, 0.8f, -0.965f), new Vector3(0.24f, 0.2f, 0.02f), Vector3.zero, face);                  // glowing clock face
+            Part(PrimitiveType.Cube, t, new Vector3(0, 0.83f, -0.98f), new Vector3(0.025f, 0.09f, 0.01f), Vector3.zero, dark);                // clock hands
+            Part(PrimitiveType.Cube, t, new Vector3(0.03f, 0.8f, -0.98f), new Vector3(0.07f, 0.025f, 0.01f), Vector3.zero, dark);
+            Part(PrimitiveType.Cube, t, new Vector3(0, 0.96f, -0.78f), new Vector3(0.46f, 0.03f, 0.38f), Vector3.zero, dark);                 // box lid
+            var under = Part(PrimitiveType.Quad, t, new Vector3(0, 0.06f, 0), new Vector3(0.9f, 1.9f, 1), new Vector3(90, 0, 0), Mats.Fx(1, Mats.Hex(0xff3db8) * 0.5f));   // underglow
             g.SetActive(false);
             return g;
         }
@@ -410,8 +435,10 @@ namespace Overtime
             dashT = Mathf.Max(0, dashT - simDt); hitT = Mathf.Max(0, hitT - rdt * 2.4f);
             var roof = sim.PeekRoof(sim.s);
             Shader.SetGlobalVector("_OTRunner", new Vector4(sim.x, sim.y, sim.s, roof != null ? sim.y - roof.y : 99));
-            bool riding = Backdrop && (Owns("bike") || mode == Mode.Epilogue);
+            // once it's bought, Kip rides it on every delivery (and steps off to hand the parcel over); the home screens stay on foot
+            bool riding = mode == Mode.Epilogue || (Owns("bike") && (mode == Mode.Play || mode == Mode.Count) && sim.ended != EndReason.Finish);
             bike.SetActive(riding);
+            if (riding) foreach (var w in bikeWheels) w.Rotate(sim.speed * simDt * 150f, 0, 0, Space.Self);
             runner.Pose(sim, simDt, dashT > 0, sim.ended == EndReason.Finish, riding);
             if (sim.ended == EndReason.None || sim.ended == EndReason.Finish) runner.SetVisible(sim.invuln <= 0 || Mathf.FloorToInt(time * 22) % 2 == 0);
             // power-up dressing on the courier
