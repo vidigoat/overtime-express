@@ -350,10 +350,10 @@ namespace Overtime
         /// <summary>How each power-up looks in the world and in the HUD: model, size, colour, name.</summary>
         public static readonly (string model, float scale, Vector3 offset, Color color, string name, string tag)[] PowerLook =
         {
-            ("food_burger", 2.6f, new Vector3(0, -0.2f, 0), new Color(1f, 0.52f, 0.1f), "BURGER RUSH", "RUSH"),
-            ("Can_A", 2.4f, new Vector3(0, -0.45f, 0), new Color(0.22f, 0.9f, 1f), "SODA FIZZ", "x2"),
-            ("Box_B", 0.75f, new Vector3(0, -0.4f, 0), new Color(0.85f, 0.95f, 1f), "BUBBLE WRAP", "WRAP"),
-            ("Coin_C", 1.5f, new Vector3(0, -0.3f, 0), new Color(1f, 0.82f, 0.12f), "TOCK MAGNET", "PULL"),
+            ("food_burger", 2.05f, new Vector3(0, -0.2f, 0), new Color(1f, 0.52f, 0.1f), "BURGER RUSH", "RUSH"),
+            ("Can_A", 1.95f, new Vector3(0, -0.45f, 0), new Color(0.22f, 0.9f, 1f), "SODA FIZZ", "x2"),
+            ("Box_B", 0.62f, new Vector3(0, -0.4f, 0), new Color(0.85f, 0.95f, 1f), "BUBBLE WRAP", "WRAP"),
+            ("Coin_C", 1.25f, new Vector3(0, -0.3f, 0), new Color(1f, 0.82f, 0.12f), "TOCK MAGNET", "PULL"),
         };
 
         public void Tick(Sim sim, float time, float dt)
@@ -362,7 +362,8 @@ namespace Overtime
             for (int i = 0; i < powers.Count && i < pw.Count; i++)
             {
                 var t = powers[i];
-                bool show = !pw[i].taken && Mathf.Abs(pw[i].s - sim.s) < 160;
+                // anything the courier has passed vanishes: behind him it would sit right in front of the camera
+                bool show = !pw[i].taken && pw[i].s - sim.s < 160 && pw[i].s > sim.s - 1.2f;
                 if (t.gameObject.activeSelf != show) t.gameObject.SetActive(show);
                 if (!show) continue;
                 var spin = t.GetChild(t.childCount - 1);
@@ -374,7 +375,7 @@ namespace Overtime
             for (int i = 0; i < coins.Count && i < cs.Count; i++)
             {
                 var t = coins[i];
-                bool show = !cs[i].taken && Mathf.Abs(cs[i].s - sim.s) < 120;
+                bool show = !cs[i].taken && cs[i].s - sim.s < 120 && cs[i].s > sim.s - 1.5f;
                 if (t.gameObject.activeSelf != show) t.gameObject.SetActive(show);
                 if (!show) continue;
                 t.rotation = Quaternion.Euler(0, time * 200 + i * 31, 0);

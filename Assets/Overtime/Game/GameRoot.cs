@@ -12,7 +12,7 @@ namespace Overtime
     /// </summary>
     public class GameRoot : MonoBehaviour
     {
-        public enum Mode { Intro, Menu, Brief, Count, Play, Results, Shop, Epilogue }
+        public enum Mode { Intro, Menu, Route, Brief, Count, Play, Results, Shop, Epilogue }
         public static GameRoot I;
         /// <summary>Probes for automated checks: metres into the current wall-run / grind (-1 when not in one), distance run.</summary>
         public static float WallProbe = -1, GrindProbe = -1, DistProbe, EndProbe, RushProbe;
@@ -41,6 +41,18 @@ namespace Overtime
         static int Best(string id) => PlayerPrefs.GetInt("ot.best." + id, 0);
         static int Stars(string id) => PlayerPrefs.GetInt("ot.stars." + id, 0);
         bool Unlocked(int i) => i == 0 || botMode || Stars(Levels.All[i - 1].id) >= 1;
+        public static readonly (int stars, string name)[] Ranks = { (0, "SOLO COURIER"), (3, "ROOFTOP ROOKIE"), (6, "CITY RUNNER"), (10, "EXPRESS PRO"), (14, "NIGHT LEGEND"), (18, "OVERTIME TYCOON") };
+        static int TotalStars() { int n = 0; foreach (var l in Levels.All) n += Stars(l.id); return n; }
+        static int RankOf(int stars) { int r = 0; for (int i = 0; i < Ranks.Length; i++) if (stars >= Ranks[i].stars) r = i; return r; }
+        /// <summary>How far through the current rank (0..1), for the HQ bar.</summary>
+        static float RankProgress(int stars) { int r = RankOf(stars); if (r >= Ranks.Length - 1) return 1; return (stars - Ranks[r].stars) / (float)(Ranks[r + 1].stars - Ranks[r].stars); }
+        int NextJob() { for (int i = 0; i < Levels.All.Length; i++) if (Unlocked(i) && Stars(Levels.All[i].id) == 0) return i; for (int i = 0; i < Levels.All.Length; i++) if (Unlocked(i) && Stars(Levels.All[i].id) < 3) return i; return 0; }
+        // the first shift teaches by doing: the world slows and a ghost thumb shows the move until you make it
+        string tutMove; float tutWait; bool briefFromRoute;
+        static int ChestPay(int i) => 120 + i * 80;
+        static bool ChestOpen(int i) => PlayerPrefs.GetInt("ot.chest." + i, 0) == 1;
+        static bool TutorialDone => PlayerPrefs.GetInt("ot.tut", 0) == 1;
+
         static Gear CurrentGear() => new Gear { gloves = Owns("gloves"), soles = Owns("soles"), magnet = Owns("magnet"), wrap = Owns("wrap"), flask = Owns("flask"), board = Owns("board"), bike = Owns("bike") };
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -94,15 +106,21 @@ namespace Overtime
             // the courier carries his own light: it keeps him readable at night and spills onto whatever he passes
             var rl = new GameObject("Runner Light"); rl.transform.SetParent(runner.root, false); rl.transform.localPosition = new Vector3(0, 2.6f, -1.6f);
             runnerLight = rl.AddComponent<Light>(); runnerLight.type = LightType.Point; runnerLight.range = 7; runnerLight.intensity = 7; runnerLight.shadows = LightShadows.None;
-            input = new SwipeInput { onSwipe = s => { if (mode == Mode.Play && bot == null) sim.DoSwipe(s); } };
+            input = new SwipeInput { onSwipe = s => { if (mode == Mode.Play && bot == null) { TutorialSwipe(s); sim.DoSwipe(s); } } };
+            Squish.onPress = () => Haptics.Tap(0);
+            hud.onTick = k => Haptics.Tap(k == 2 ? 3 : k);
 
-            for (int i = 0; i < 6; i++) { int k = i; hud.cards[i].onClick.AddListener(() => { if (Unlocked(k)) OpenBrief(k); }); }
+            for (int i = 0; i < 6; i++) { int k = i; hud.cards[i].onClick.AddListener(() => { if (Unlocked(k)) { briefFromRoute = true; OpenBrief(k); } else hud.Popup("LOCKED", Hud.Text2, 0.6f); }); }
             hud.bStart.onClick.AddListener(() => StartLevel(briefIdx, false));
-            hud.bBack.onClick.AddListener(ToMenu);
+            hud.bBack.onClick.AddListener(() => { if (briefFromRoute) OpenRoute(); else ToMenu(); });
+            hud.routeBtn.onClick.AddListener(OpenRoute);
+            hud.routeBack.onClick.AddListener(ToMenu);
+            for (int i = 0; i < 5; i++) { int k = i; hud.chestBtn[i].onClick.AddListener(() => ClaimChest(k)); }
             hud.retry.onClick.AddListener(() => StartLevel(levelIdx, botMode));
             hud.next.onClick.AddListener(() => { int n = Mathf.Min(Levels.All.Length - 1, levelIdx + 1); if (botMode) StartLevel(n, true); else OpenBrief(n); });
             hud.toMenu.onClick.AddListener(ToMenu);
             hud.shopBtn.onClick.AddListener(OpenShop);
+            hud.playBtn.onClick.AddListener(() => { briefFromRoute = false; OpenBrief(NextJob()); });
             hud.sBack.onClick.AddListener(ToMenu);
             for (int i = 0; i < GearList.Length; i++) { int k = i; hud.buy[i].onClick.AddListener(() => Buy(k)); }
             hud.introGo.onClick.AddListener(() => { PlayerPrefs.SetInt("ot.intro", 1); PlayerPrefs.Save(); ToMenu(); });
@@ -155,10 +173,11 @@ namespace Overtime
         void SetMode(Mode m)
         {
             mode = m;
-            hud.intro.SetActive(m == Mode.Intro); hud.menu.SetActive(m == Mode.Menu); hud.brief.SetActive(m == Mode.Brief); hud.results.SetActive(m == Mode.Results);
-            hud.shop.SetActive(m == Mode.Shop); hud.play.SetActive(m == Mode.Play || m == Mode.Count);
+            hud.Show(hud.intro, m == Mode.Intro); hud.Show(hud.menu, m == Mode.Menu); hud.Show(hud.brief, m == Mode.Brief); hud.Show(hud.results, m == Mode.Results);
+            hud.Show(hud.shop, m == Mode.Shop); hud.Show(hud.routeScreen, m == Mode.Route); hud.play.SetActive(m == Mode.Play || m == Mode.Count);
+            if (m != Mode.Play) { tutMove = null; hud.Tutorial(null, Vector2.zero); }
         }
-        bool Backdrop => mode == Mode.Menu || mode == Mode.Intro || mode == Mode.Brief || mode == Mode.Shop || mode == Mode.Epilogue;
+        bool Backdrop => mode == Mode.Menu || mode == Mode.Route || mode == Mode.Intro || mode == Mode.Brief || mode == Mode.Shop || mode == Mode.Epilogue;
 
         public void StartLevel(int i, bool asBot)
         {
@@ -173,19 +192,60 @@ namespace Overtime
         public void ToMenu()
         {
             hud.wallet.text = Wallet.ToString("N0");
-            hud.company.text = Owns("bike") ? "YOUR COMPANY  ·  NOW WITH WHEELS" : "YOUR COMPANY";
-            for (int i = 0; i < 6; i++)
-            {
-                var l = Levels.All[i]; bool open = Unlocked(i); int st = Stars(l.id);
-                hud.cardBg[i].color = open ? Hud.Card : new Color(0.07f, 0.065f, 0.2f, 0.97f);
-                hud.cardText[i].text = open
-                    ? $"<size=13><color=#39e6ff>JOB {i + 1}  /  {l.name}</color></size>\n{l.delivery.item}"
-                    : $"<size=13><color=#8a88a8>JOB {i + 1}  /  LOCKED</color></size>\n<color=#8a88a8>Earn a star on job {i}</color>";
-                Hud.SetPips(hud.cardPips[i], st, open);
-            }
+            hud.company.text = Owns("bike") ? "YOUR COMPANY · NOW WITH WHEELS" : "YOUR COMPANY";
+            int total = TotalStars(), rank = RankOf(total);
+            hud.rankName.text = $"RANK {rank + 1}  ·  {Ranks[rank].name}";
+            hud.rankFill.rectTransform.anchorMax = new Vector2(Mathf.Max(0.03f, RankProgress(total)), 1);
+            hud.rankSub.text = rank < Ranks.Length - 1 ? $"{total} / {Ranks[rank + 1].stars} stars to {Ranks[rank + 1].name}" : "Top of the city. Every rooftop knows your name.";
+            int nx = NextJob();
+            hud.pulsePin = nx;
+            hud.playSub.text = $"JOB {nx + 1}  ·  {Levels.All[nx].delivery.item}";
             SetMode(Mode.Menu);
             Prepare(0);
             bot = new Bot(0.985f, Random.Range(1, 99999));   // the backdrop is a bot running job 1
+        }
+
+        /// <summary>The Duolingo-style path: gold stops you've cleared, the next one breathing, chests that pay out between districts.</summary>
+        void OpenRoute()
+        {
+            hud.routeWallet.text = Wallet.ToString("N0");
+            int nx = NextJob(); hud.pulsePin = nx;
+            for (int i = 0; i < 6; i++)
+            {
+                var l = Levels.All[i]; bool open = Unlocked(i); int st = Stars(l.id); bool done = st > 0;
+                var c = Hud.DistrictColors[i];
+                hud.routeNode[i].color = done ? Hud.Yellow : open ? c : new Color(0.24f, 0.24f, 0.38f);
+                hud.cardText[i].text = done ? "" : open ? (i + 1).ToString() : "<color=#7a7aa0>?</color>";
+                hud.routeTick[i].gameObject.SetActive(done);
+                Hud.SetPips(hud.cardPips[i], st, true);
+                hud.routeItem[i].text = open ? l.delivery.item : "LOCKED";
+                hud.routeBanner[i].color = open ? Color.white : new Color(0.6f, 0.6f, 0.75f);
+            }
+            for (int i = 0; i < 5; i++)
+            {
+                bool earned = Stars(Levels.All[i].id) > 0, got = ChestOpen(i);
+                hud.chestReady[i] = earned && !got;
+                hud.routeChest[i].color = got ? new Color(0.3f, 0.22f, 0.16f) : earned ? new Color(0.62f, 0.36f, 0.12f) : new Color(0.3f, 0.3f, 0.42f);
+                hud.chestText[i].text = got ? "PAID OUT" : earned ? $"TAP: +{ChestPay(i)}" : $"+{ChestPay(i)} TOCKS";
+                hud.chestText[i].color = got ? Hud.Text2 : Hud.Yellow;
+            }
+            foreach (var (dot, seg) in hud.routeDots) dot.color = seg < nx * 2 ? new Color(1f, 0.82f, 0.12f, 0.7f) : new Color(1, 1, 1, 0.16f);
+            SetMode(Mode.Route);
+            // scroll so the next stop sits a third of the way down
+            Canvas.ForceUpdateCanvases();
+            float content = hud.routeContent.rect.height, view = ((RectTransform)hud.routeScroll.transform).rect.height;
+            float target = -hud.routeNode[nx].rectTransform.anchoredPosition.y - view * 0.33f;
+            hud.routeScroll.verticalNormalizedPosition = content > view ? 1 - Mathf.Clamp01(target / (content - view)) : 1;
+        }
+
+        void ClaimChest(int i)
+        {
+            if (ChestOpen(i)) { hud.Popup("ALREADY PAID", Hud.Text2, 0.6f); return; }
+            if (Stars(Levels.All[i].id) == 0) { hud.Popup($"FINISH JOB {i + 1}", Hud.Text2, 0.7f); return; }
+            PlayerPrefs.SetInt("ot.chest." + i, 1); Wallet += ChestPay(i); PlayerPrefs.Save();
+            Haptics.Tap(3);
+            OpenRoute();
+            hud.Popup($"+{ChestPay(i)} TOCKS!", Hud.Yellow, 1f);
         }
 
         void OpenBrief(int i)
@@ -199,6 +259,9 @@ namespace Overtime
             hud.bRuleBg.color = d.kind switch { ParcelKind.Heavy => new Color(1f, 0.72f, 0.3f), ParcelKind.Fragile => new Color(0.75f, 0.9f, 1f), ParcelKind.Hot => new Color(1f, 0.55f, 0.45f), ParcelKind.Live => new Color(0.7f, 1f, 0.7f), ParcelKind.Ticking => new Color(1f, 0.6f, 0.85f), _ => new Color(0.86f, 0.9f, 1f) };
             hud.bDot.text = d.briefing;
             hud.bPay.text = $"PAYS <color=#ffc21a>{d.pay} TOCKS</color> + TIME + PICKUPS";
+            int have = Stars(l.id);
+            string G(int k, string s) => (have > k ? "<color=#ffd21e>◆</color> " : "<color=#6a70a0>◇</color> ") + s;
+            hud.bGoals.text = $"{G(0, $"Deliver it and score {l.stars[0]:N0}")}\n{G(1, $"Score {l.stars[1]:N0}")}\n{G(2, $"Score {l.stars[2]:N0}")}";
             SetMode(Mode.Brief);
         }
 
@@ -291,14 +354,18 @@ namespace Overtime
             if (playing || Backdrop)
             {
                 sim.slow = playing && bot == null && input.slow;
-                int steps = Mathf.Max(1, Mathf.CeilToInt(rdt * 120f)); float h = rdt / steps;
+                // while the tutorial thumb is up the world nearly stops; it lets go by itself after a few seconds
+                if (tutMove != null) { tutWait += rdt; if (tutWait > 5f) { tutMove = null; hud.Tutorial(null, Vector2.zero); } }
+                float worldK = tutMove != null ? 0.12f : 1f;
+                float wdt = rdt * worldK;
+                int steps = Mathf.Max(1, Mathf.CeilToInt(wdt * 120f)); float h = wdt / steps;
                 for (int i = 0; i < steps && sim.ended == EndReason.None; i++)
                 {
                     bot?.Act(sim, h);
                     if (!playing) sim.clock = Mathf.Max(sim.clock, 30);
                     sim.Step(h);
                 }
-                simDt = rdt * (1 - 0.58f * sim.slowAmt);
+                simDt = wdt * (1 - 0.58f * sim.slowAmt);
                 Handle(sim.events, playing);
                 if (sim.ended != EndReason.None)
                 {
@@ -347,6 +414,7 @@ namespace Overtime
             if (sim.state == RunState.Grind) fx.Burst(new Vector3(sim.x, sim.y + 0.04f, sim.s), 2, Mats.Hex(0xffe14a, 2), 3.5f, 1.2f, sim.speed * 0.5f, 0.3f, 0.5f);
             if (sim.state == RunState.Wall) fx.Burst(new Vector3(sim.x + sim.wall.side * 0.8f, sim.y + 0.1f, sim.s), 2, mood.accent * 2, 2.5f, 0.5f, sim.speed * 0.5f, 0.3f, 0.4f);
             if (sim.state == RunState.Slide) fx.Burst(new Vector3(sim.x, sim.y + 0.05f, sim.s + 0.5f), 1, Mats.Hex(0xffd9a0, 1.5f), 2.5f, 0.5f, sim.speed * 0.4f, 0.28f, 0.4f);
+            rig.hero = Backdrop && mode != Mode.Epilogue;
             rig.Update(sim, simDt, rdt, mood.over, time);
             // the hand-off: he jogs the last few steps to the customer, turns to them and passes the parcel over
             bool handoff = mode == Mode.Play && sim.ended == EndReason.Finish;
@@ -386,7 +454,9 @@ namespace Overtime
                 float c = sim.clock;
                 hud.clock.text = sim.overtime ? "-" + Mathf.Abs(c).ToString("F1") : Mathf.Max(0, c).ToString("F1");
                 hud.clock.color = sim.overtime ? Hud.Red : c < 8 ? new Color(1f, 0.8f, 0.3f) : Color.white;
-                hud.label.text = sim.overtime ? "OVERTIME!" : "SECONDS LEFT";
+                hud.label.text = sim.overtime ? "OVERTIME! DON'T GET HIT" : "";
+                hud.SetClockPulse(sim.overtime || c < 8 ? 1 : 0);
+                hud.clockBg.color = sim.overtime ? new Color(0.45f, 0.02f, 0.08f, 0.8f) : new Color(Hud.Ink.r, Hud.Ink.g, Hud.Ink.b, 0.7f);
                 hud.label.color = sim.overtime ? Hud.Red : Color.white;
                 hud.debt.SetActive(sim.overtime);
                 if (sim.overtime) hud.debtFill.rectTransform.anchorMax = new Vector2(Mathf.Clamp01(1 + c / Sim.OtLimit), 1);
@@ -394,7 +464,7 @@ namespace Overtime
                 hud.score.text = Mathf.RoundToInt(shownScore).ToString("N0");
                 hud.coins.text = sim.coinsGot.ToString();
                 hud.progFill.rectTransform.anchorMax = new Vector2(sim.Progress, 1);
-                hud.flowRow.SetActive(sim.chain > 0);
+                hud.flowRow.SetActive(sim.chain > 0 && !sim.overtime);
                 if (sim.chain > 0)
                 {
                     var fc = Mood.Flow(sim.chain).gamma;
@@ -410,7 +480,7 @@ namespace Overtime
                     if (left[i] <= 0) continue;
                     var look = World.PowerLook[i];
                     hud.powRow[slot].SetActive(true);
-                    hud.powFill[slot].color = look.color.gamma; hud.powFill[slot].rectTransform.anchorMax = new Vector2(Mathf.Clamp01(left[i]), 1);
+                    hud.powFill[slot].color = look.color.gamma; hud.powFill[slot].fillAmount = Mathf.Clamp01(left[i]);
                     hud.powText[slot].text = look.tag;
                     slot++;
                 }
@@ -426,6 +496,17 @@ namespace Overtime
             var p = new Vector3(sim.x, sim.y, sim.s); float f = sim.speed * 0.2f;
             foreach (var e in events)
             {
+                if (playing)
+                {
+                    int hk = e.type switch
+                    {
+                        EvType.Jump or EvType.Land or EvType.Lane or EvType.Coin or EvType.Slide => 0,
+                        EvType.Dash or EvType.Capsule or EvType.Crack or EvType.Wrap => 1,
+                        EvType.Hit or EvType.Fall => 2, EvType.Power or EvType.Finish or EvType.OtExit => 3, EvType.OtEnter => 4,
+                        EvType.Trick when e.name == "perfect" || e.name == "walljump" || e.name == "launch" => 1, _ => -1,
+                    };
+                    if (hk >= 0) Haptics.Tap(hk);
+                }
                 switch (e.type)
                 {
                     case EvType.Land: runner.squash = 0.8f; runner.OneShot("Jump_Land", 0.7f, 2.2f); rig.dip = 0.35f; rig.shake = Mathf.Max(rig.shake, 0.1f); fx.Burst(p + Vector3.up * 0.08f, 12, Color.white, 3.5f, 0.4f, f, 0.5f, 0.45f, 3); if (playing) sfx.Play("land"); break;
@@ -457,7 +538,11 @@ namespace Overtime
                     case EvType.OtExit: rig.fovKick = 10; fx.Burst(p + Vector3.up, 60, Mats.Hex(0x39e6ff, 2), 10, 3, f, 0.6f, 0.9f); if (playing) { sfx.Play("win", 0.7f); hud.Popup("CLOCKED BACK IN!\n<size=17>+3 seconds</size>", Color.white, 1.4f); } break;
                     case EvType.Finish: fx.Burst(p + Vector3.up * 1.5f, 110, Mats.Hex(0xffd21e, 2), 13, 6, f, 0.7f, 1.4f, 7); fx.Burst(p + Vector3.up * 1.5f, 70, Mats.Hex(0xff5cb3, 2), 10, 7, f, 0.7f, 1.5f, 7);
                         if (playing) sfx.Play("win"); break;
-                    case EvType.Hint: if (playing) hud.Hint(e.text); break;
+                    case EvType.Hint:
+                        if (!playing) break;
+                        if (levelIdx == 0 && !TutorialDone && TutorialFor(e.text, out var move, out var say, out var dir)) { tutMove = move; tutWait = 0; hud.Tutorial(say, dir); }
+                        else hud.Hint(e.text);
+                        break;
                     case EvType.Trick:
                         if (e.name == "walljump" || e.name == "launch") runner.flip = 1;
                         if (e.name == "perfect") { fx.Burst(p + Vector3.up * 0.15f, 44, Mats.Hex(0x4dff9a, 2), 8, 2.5f, f, 0.6f, 0.7f, 5); rig.fovKick = 7; }
@@ -474,11 +559,28 @@ namespace Overtime
             events.Clear();
         }
 
+        static bool TutorialFor(string hint, out string move, out string say, out Vector2 dir)
+        {
+            move = null; say = null; dir = Vector2.zero;
+            if (hint.StartsWith("SWIPE LEFT")) { move = "side"; say = "SWIPE SIDEWAYS"; dir = Vector2.right; }
+            else if (hint.StartsWith("SWIPE UP")) { move = "Up"; say = "SWIPE UP TO JUMP"; dir = Vector2.up; }
+            else if (hint.StartsWith("SWIPE DOWN")) { move = "Down"; say = "SWIPE DOWN TO SLIDE"; dir = Vector2.down; }
+            else if (hint.StartsWith("SWIPE RIGHT AGAIN")) { move = "Right"; say = "SWIPE RIGHT: WALL RUN"; dir = Vector2.right; }
+            return move != null;
+        }
+
+        void TutorialSwipe(Swipe s)
+        {
+            if (tutMove == null) return;
+            if (tutMove == s.ToString() || (tutMove == "side" && (s == Swipe.Left || s == Swipe.Right))) { tutMove = null; hud.Tutorial(null, Vector2.zero); hud.Popup("NICE!", Hud.Green, 0.6f); Haptics.Tap(3); }
+        }
+
         void ShowResults()
         {
             var L = sim.level; var d = L.delivery; bool won = sim.ended == EndReason.Finish; int score = sim.finalScore;
             int stars = 0; if (won) foreach (int t in L.stars) if (score >= t) stars++;
             int prevBest = Best(L.id);
+            int starsBefore = TotalStars();
             // wages: base pay + a bonus for every second left + the tips you picked up + a tip for the parcel's condition
             int timeBonus = won ? Mathf.FloorToInt(Mathf.Max(0, sim.clock)) * 2 : 0;
             int tips = won ? sim.coinsGot : sim.coinsGot / 2;
@@ -496,12 +598,22 @@ namespace Overtime
             SetMode(Mode.Results);
             hud.rTitle.text = won ? (sim.overtime ? "DELIVERED LATE!" : "DELIVERED!") : sim.ended == EndReason.Timeout ? "OUT OF TIME" : "PARCEL DOWN";
             hud.rTitle.color = won ? Color.white : Hud.Red;
-            Hud.SetPips(hud.rPips, stars);
             hud.rQuote.text = won ? $"{d.customer}:\n{d.thanks}" : sim.ended == EndReason.Timeout
                 ? "Dot: \"Overtime ran dry, boss. Chain your moves and it pays itself back.\"" : "Dot: \"One hit in overtime and it's over. Clock in earlier next time.\"";
-            hud.rLines.text = won ? $"Base pay\nTime bonus\nTocks picked up\nCare bonus ({Mathf.RoundToInt(sim.condition * 100)}%)" + (late > 0 ? "\nOvertime rate" : "") + (Owns("bike") ? "\nBike  x1.5" : "") : "Tocks you kept";
-            hud.rAmounts.text = won ? $"{d.pay}\n{timeBonus}\n{tips}\n{care}" + (late > 0 ? $"\n{late}" : "") + (Owns("bike") ? "\n" : "") : tips.ToString();
-            hud.rTotal.text = $"WAGES  +{total:N0} TOCKS";
+            var lines = new List<string>(); var amts = new List<int>();
+            if (won)
+            {
+                lines.Add("Base pay"); amts.Add(d.pay); lines.Add("Time bonus"); amts.Add(timeBonus); lines.Add("Tocks picked up"); amts.Add(tips);
+                lines.Add($"Care bonus ({Mathf.RoundToInt(sim.condition * 100)}%)"); amts.Add(care);
+                if (late > 0) { lines.Add("Overtime rate"); amts.Add(late); }
+                if (Owns("bike")) { lines.Add("Bike  x1.5"); amts.Add(-1); }
+            }
+            else { lines.Add("Tocks you kept"); amts.Add(tips); }
+            int starsAfter = botMode ? starsBefore : TotalStars(), rb = RankOf(starsBefore), ra = RankOf(starsAfter);
+            string rankText = ra > rb ? $"RANK UP!  {Ranks[ra].name}" : ra < Ranks.Length - 1 ? $"{Ranks[ra].name}  ·  {starsAfter} / {Ranks[ra + 1].stars} stars" : Ranks[ra].name;
+            hud.Results(lines.ToArray(), amts.ToArray(), total, stars, ra > rb ? 0 : RankProgress(starsBefore), RankProgress(starsAfter), rankText);
+            hud.rRank.color = ra > rb ? Hud.Yellow : Hud.Text2;
+            if (won && levelIdx == 0 && !botMode) { PlayerPrefs.SetInt("ot.tut", 1); PlayerPrefs.Save(); }
             bool canNext = won && levelIdx + 1 < Levels.All.Length && (stars >= 1 || Unlocked(levelIdx + 1));
             hud.next.gameObject.SetActive(canNext);
             hud.next.transform.parent.GetChild(hud.next.transform.GetSiblingIndex() - 1).gameObject.SetActive(canNext);
