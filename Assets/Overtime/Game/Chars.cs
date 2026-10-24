@@ -11,7 +11,8 @@ namespace Overtime
     {
         public Transform model, head, chest;
         readonly Transform[] feet = new Transform[4], ankles = new Transform[4];
-        readonly Matrix4x4[] footOffset = new Matrix4x4[4];
+        readonly Vector3[] footLocalPos = new Vector3[4];
+        readonly Quaternion[] footLocalRot = new Quaternion[4];
         readonly float headScale;
         public float legScale = 1f;
         Transform legL, legR;
@@ -42,7 +43,7 @@ namespace Overtime
         public static CharBody BuildCourier(Transform parent, string variant, float scale, Material flowGlow, Material clockGlow, out Transform pack)
         {
             bool casual = variant == "Casual";
-            var b = new CharBody(variant, parent, casual ? scale * 0.4f : scale, casual ? 1.3f : 1.38f, casual ? CourierCasual : Courier, 1.5f, 0.5f);
+            var b = new CharBody(variant, parent, casual ? scale * 0.4f : scale, casual ? 1.3f : 1.16f, casual ? CourierCasual : Courier, 1.5f, 0.5f);
             var yellow = Mats.Lit(new Color(2.3f, 1.6f, 0.16f), 0.6f); var ink = Mats.Lit(new Color(0.08f, 0.09f, 0.2f), 0.6f);
             Transform Box(Transform bone, Vector3 off, Vector3 euler, Vector3 size, Material m, PrimitiveType type = PrimitiveType.Cube)
             {
@@ -54,7 +55,6 @@ namespace Overtime
                 return at;
             }
             pack = null;
-            if (!casual) b.legScale = 0.84f;
             if (b.chest)
             {
                 pack = b.Attach(b.chest, new Vector3(0, 0.0f, -0.26f), new Vector3(2, 180, 0), Vector3.one * 1.1f);
@@ -92,10 +92,10 @@ namespace Overtime
                     Box(b.head, new Vector3(0, 0.088f, -0.005f), Vector3.zero, new Vector3(0.245f, 0.035f, 0.22f), ink);     // strap round the helmet
                     // a courier's neck gaiter pulled up over the mouth, with a knot flying behind
                     var orange = Mats.Lit(new Color(1.2f, 0.36f, 0.1f), 0.6f);
-                    Box(b.head, new Vector3(0, 0.005f, 0.075f), new Vector3(8, 0, 0), new Vector3(0.2f, 0.085f, 0.12f), orange);
-                    Box(b.head, new Vector3(0, -0.02f, -0.01f), Vector3.zero, new Vector3(0.21f, 0.07f, 0.2f), orange);
-                    Box(b.head, new Vector3(0.05f, -0.03f, -0.15f), new Vector3(-25, 12, 0), new Vector3(0.05f, 0.03f, 0.16f), orange);
-                    Box(b.head, new Vector3(-0.04f, -0.05f, -0.16f), new Vector3(-40, -10, 0), new Vector3(0.05f, 0.03f, 0.14f), orange);
+                    Box(b.head, new Vector3(0, 0.005f, 0.075f), new Vector3(8, 0, 0), new Vector3(0.16f, 0.04f, 0.05f), orange);
+                    Box(b.head, new Vector3(0, -0.02f, -0.01f), Vector3.zero, new Vector3(0.15f, 0.035f, 0.1f), orange);
+                    Box(b.head, new Vector3(0.05f, -0.03f, -0.15f), new Vector3(-25, 12, 0), new Vector3(0.025f, 0.015f, 0.16f), orange);
+                    Box(b.head, new Vector3(-0.04f, -0.05f, -0.16f), new Vector3(-40, -10, 0), new Vector3(0.025f, 0.015f, 0.14f), orange);
                 }
             }
             Box(Find(b.model, "Foot.L"), new Vector3(0, -0.07f, 0.03f), Vector3.zero, new Vector3(0.1f, 0.022f, 0.25f), flowGlow);
@@ -131,7 +131,11 @@ namespace Overtime
             for (int i = 0; i < 4; i++)
             {
                 feet[i] = Find(model, f[i]); ankles[i] = Find(model, a[i]);
-                if (feet[i] && ankles[i]) footOffset[i] = ankles[i].worldToLocalMatrix * feet[i].localToWorldMatrix;
+                if (feet[i] && ankles[i])
+                {
+                    footLocalPos[i] = ankles[i].InverseTransformPoint(feet[i].position);
+                    footLocalRot[i] = Quaternion.Inverse(ankles[i].rotation) * feet[i].rotation;
+                }
             }
         }
 
@@ -141,8 +145,12 @@ namespace Overtime
             for (int i = 0; i < 4; i++)
             {
                 if (!feet[i] || !ankles[i]) continue;
-                var m = ankles[i].localToWorldMatrix * footOffset[i];
-                feet[i].SetPositionAndRotation(m.GetColumn(3), m.rotation);
+                var pos = ankles[i].TransformPoint(footLocalPos[i]);
+                var rot = ankles[i].rotation * footLocalRot[i];
+                var local = Quaternion.Inverse(model.rotation) * rot;
+                var e = local.eulerAngles;
+                float pitch = Mathf.DeltaAngle(0, e.x), yaw = Mathf.DeltaAngle(0, e.y);
+                feet[i].SetPositionAndRotation(pos, model.rotation * Quaternion.Euler(pitch, yaw, 0));
             }
             if (head) head.localScale = Vector3.one * headScale;
             if (legL) legL.localScale = legR.localScale = new Vector3(1, legScale, 1);

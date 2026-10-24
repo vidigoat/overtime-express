@@ -16,7 +16,7 @@ float ot_vnoise(float2 p){
 half3 ot_sky(float3 d, float detail){
   float h = saturate(d.y * 1.5 + 0.1);
   half3 col = lerp(_OTHor.rgb, _OTTop.rgb, pow(h, 0.5));
-  col += _OTHor.rgb * 0.4 * exp(-abs(d.y) * 7.0);
+  col += _OTHor.rgb * 0.78 * exp(-abs(d.y) * 5.2);
   if (detail > 0.5) {
     float band = smoothstep(0.02, 0.16, d.y) * smoothstep(0.5, 0.2, d.y);
     float cl = ot_vnoise(float2(atan2(d.x, d.z) * 5.0 + _OTTime * 0.01, d.y * 34.0));

@@ -34,9 +34,9 @@ namespace Overtime
             shake = Mathf.Max(0, shake - rdt * 2.2f);
             dip += (0 - dip) * Mathf.Min(1, rdt * 9);
             fovKick += (0 - fovKick) * Mathf.Min(1, rdt * 4);
-            float sh = shake * shake, back = portrait ? 5.3f : 5.2f;
-            var pos = new Vector3(camX + (Random.value - 0.5f) * sh, camY - dip + (Random.value - 0.5f) * sh + (sim.state == RunState.Slide ? -0.55f : 0), sim.s - back);
-            var look = new Vector3(camX * 1.25f, camY - 1.8f - dip * 0.5f, sim.s + 10);
+            float sh = shake * shake, back = portrait ? 6.0f : 5.6f;
+            var pos = new Vector3(camX + (Random.value - 0.5f) * sh * 0.6f, camY - dip + (Random.value - 0.5f) * sh * 0.6f + (sim.state == RunState.Slide ? -0.55f : 0), sim.s - back);
+            var look = new Vector3(camX * 1.25f, camY - 1.45f - dip * 0.5f, sim.s + 10);
             heroK = Mathf.MoveTowards(heroK, hero ? 1 : 0, rdt * 2.5f);
             if (heroK > 0)
             {
@@ -49,7 +49,7 @@ namespace Overtime
             roll += (targetRoll - roll) * Mathf.Min(1, rdt * 8);
             cam.transform.position = pos;
             cam.transform.rotation = Quaternion.LookRotation(look - pos, Vector3.up) * Quaternion.AngleAxis(roll, Vector3.forward);
-            float fov = Mathf.Lerp(portrait ? 72 : 58, 60, Mathf.SmoothStep(0, 1, heroK)) + (sim.speed - 14.5f) * 1.6f + fovKick + over * 5 - sim.slowAmt * 9;
+            float fov = Mathf.Lerp(portrait ? 66 : 58, 60, Mathf.SmoothStep(0, 1, heroK)) + (sim.speed - 14.5f) * 1.6f + fovKick + over * 5 - sim.slowAmt * 9;
             cam.fieldOfView += (fov - cam.fieldOfView) * Mathf.Min(1, rdt * 8);
         }
     }

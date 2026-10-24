@@ -41,10 +41,14 @@ Shader "Overtime/Roof"
                 float fres = pow(1.0 - max(dot(Vd, N), 0.0), 4.0);
 
                 float inPlayPre = step(abs(W.x), _PlayHalf);
-                half3 dayBase = lerp(half3(0.36, 0.42, 0.62), half3(0.56, 0.6, 0.76), inPlayPre) * lerp(half3(1, 1, 1), _OTAmbSky.rgb, 0.25);
-                half3 base = lerp(_Base.rgb, dayBase, _OTDay) * (0.8 + 0.4 * grain) * lerp(1.0, lerp(0.75, 0.9, _OTDay), wet);
-                float inPlay = step(abs(W.x), _PlayHalf);
-                base *= lerp(0.62, 1.0, inPlay);
+                // the run is a lit board: warm and plain in the lanes, dark off to the side, like a ring in a detailed city
+                half3 lane = half3(0.62, 0.50, 0.34);
+                half3 shoulder = _Base.rgb * 0.7;
+                half3 dayBase = lerp(half3(0.36, 0.42, 0.62), half3(0.72, 0.64, 0.46), inPlayPre) * lerp(half3(1, 1, 1), _OTAmbSky.rgb, 0.25);
+                half3 nightBase = lerp(shoulder, lane, inPlayPre);
+                float wetAmt = wet * lerp(0.28, 1.0, 1.0 - inPlayPre);
+                half3 base = lerp(nightBase, dayBase, _OTDay) * (0.88 + 0.24 * grain) * lerp(1.0, lerp(0.84, 0.92, _OTDay), wetAmt);
+                float inPlay = inPlayPre;
                 float seam = max(ln(frac(W.z / 6.0) - 0.5, 0.004), ln(frac(W.x / 2.6 + 0.5) - 0.5, 0.006) * (1.0 - inPlay));
                 base *= 1.0 - 0.55 * seam;
 
@@ -52,7 +56,7 @@ Shader "Overtime/Roof"
                 half3 col = base * (_OTAmbSky.rgb * lerp(0.9, 0.62, _OTDay) + l.color * saturate(l.direction.y) * l.shadowAttenuation * lerp(0.7, 0.62, _OTDay));
 
                 half3 refl = min(ot_sky(R, 0.0), 0.95) * 0.62;
-                col = lerp(col, refl, clamp(fres * (0.5 + 0.5 * wet) + wet * 0.05, 0.0, 0.9) * (0.45 + 0.55 * l.shadowAttenuation) * lerp(1.0, 0.3, _OTDay));
+                col = lerp(col, refl, clamp(fres * (0.35 + 0.65 * wetAmt) + wetAmt * 0.04, 0.0, 0.85) * (0.45 + 0.55 * l.shadowAttenuation) * lerp(1.0, 0.3, _OTDay));
 
                 float2 rd = W.xz - _OTRunner.xz;
                 float h = max(0.0, _OTRunner.w);
@@ -66,7 +70,7 @@ Shader "Overtime/Roof"
                 float lip = smoothstep(0.34, 0.26, toEnd) * inPlay;
                 float chev = step(0.5, frac((toEnd + abs(W.x)) * 0.7)) * smoothstep(2.2, 2.0, toEnd) * smoothstep(0.34, 0.42, toEnd) * inPlay;
                 float startLip = smoothstep(0.16, 0.1, i.roof.x) * inPlay;
-                half3 em = _OTAccent.rgb * (edge * 1.5 + lanes * 0.55 + startLip * 0.9) + half3(1.0, 0.55, 0.12) * chev * 0.28 + half3(1.6, 1.5, 1.4) * lip;
+                half3 em = _OTAccent.rgb * (edge * 2.4 + lanes * 1.25 + startLip * 1.15) + half3(1.0, 0.55, 0.12) * chev * 0.45 + half3(1.7, 1.55, 1.35) * lip;
                 // by day the markings are paint, not light
                 float paint = saturate(edge + lanes + startLip + lip);
                 half3 dayCol = lerp(col, half3(1.0, 1.0, 1.0) * (0.55 + 0.45 * l.shadowAttenuation), paint * 0.9);

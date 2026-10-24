@@ -111,6 +111,12 @@ namespace Overtime
                                 Prop(name, x, r.y, s, ry, name == "tank" ? 0.85f : 1);
                             }
                             else art.Spawn(name, root.transform, new Vector3(x, r.y, s), Quaternion.Euler(0, Mathf.Floor(Rnd() * 4) * 90 + (Rnd() - 0.5f) * 24, 0), name.StartsWith("crate") ? 1.6f : 1.35f);
+                            // a small torch on the lane side of the clutter, lining the board
+                            if (Rnd() < 0.35f)
+                            {
+                                Box(dark, x, r.y + 0.9f, s, 0.07f, 0.9f, 0.07f);
+                                Box(Mats.Glow(Mats.Hex(0xffb347), 2.4f), x, r.y + 1.45f, s, 0.18f, 0.22f, 0.18f, 0, false);
+                            }
                         }
                         s += 4.5f + Rnd() * 6;
                     }
@@ -198,7 +204,28 @@ namespace Overtime
                 var beam2 = Mesh(Mats.Quad, Mats.Fx(1, info.color * 0.55f), Vector3.zero, Quaternion.identity, new Vector3(1.1f, 7f, 1), false); beam2.transform.SetParent(holder, false); beam2.transform.localPosition = new Vector3(0, 3.5f, 0); beam2.transform.localRotation = Quaternion.Euler(0, 90, 0);
                 var spin = new GameObject("Spin").transform; spin.SetParent(holder, false); spin.localPosition = new Vector3(0, 1.15f, 0);
                 var model = art.Spawn(info.model, spin, Vector3.zero, Quaternion.identity, 1f, false);
-                if (model) { model.localPosition = info.offset; model.localScale = Vector3.one * info.scale; }
+                if (model)
+                {
+                    model.localPosition = info.offset; model.localScale = Vector3.one * info.scale;
+                    // a broken or built-in shader draws nothing in the web player; fall back to the lit courier shader
+                    foreach (var rend in model.GetComponentsInChildren<Renderer>())
+                    {
+                        var mats = rend.sharedMaterials;
+                        bool swap = false;
+                        for (int m = 0; m < mats.Length; m++)
+                        {
+                            var sh = mats[m] ? mats[m].shader : null;
+                            if (sh == null || sh.name.Contains("Error") || sh.name == "Standard" || sh.name.StartsWith("Legacy"))
+                            { mats[m] = Mats.Lit(Color.white, 0.55f); swap = true; }
+                        }
+                        if (swap) rend.sharedMaterials = mats;
+                    }
+                }
+                else
+                {
+                    var stand = Mesh(Mats.Cube, Mats.Glow(info.color, 2.4f), Vector3.zero, Quaternion.identity, Vector3.one * 0.42f, false);
+                    stand.transform.SetParent(spin, false);
+                }
                 if (w.kind == PowerKind.Wrap)
                 {
                     // the bubble-wrap parcel sits inside a shimmering bubble
@@ -258,6 +285,13 @@ namespace Overtime
                 float top = near ? -16 + Rnd() * 30 : -20 + Rnd() * Rnd() * 120;
                 float z = -80 + (i / (float)count) * span + Rnd() * 6;
                 Box(bld, x, top - 80, z, w, 160, dp, 0, false);
+                // one tall sheet down the inner face of some near towers
+                if (near && i % 6 == 0)
+                {
+                    var fall = Mesh(Mats.Quad, Mats.Fx(1, Mats.Hex(0x9fdfff) * 0.55f), new Vector3(x - side * (w * 0.5f + 0.15f), top - 22f, z), Quaternion.identity, new Vector3(1.6f, 40f, 1f), false);
+                    // a slight yaw so the sheet faces the chase camera instead of turning edge-on
+                    fall.transform.rotation = Quaternion.Euler(0, side > 0 ? 18 : -18, 0);
+                }
                 // neon billboards on the nearer towers: the city talks about time, money and the competition
                 if (near && i % 4 == 1 && z > 20 && z < level.length)
                 {

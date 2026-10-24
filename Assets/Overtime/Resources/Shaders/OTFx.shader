@@ -22,7 +22,7 @@ Shader "Overtime/Fx"
             {
                 half3 tint = _Tint.rgb * i.color.rgb;
                 float a = i.color.a;
-                if (_Mode < 0.5) { float d = length(i.uv - 0.5) * 2.0; float s = smoothstep(1.0, 0.0, d); a *= s * s; tint *= 0.45 + 0.9 * s; }
+                if (_Mode < 0.5) { float d = length(i.uv - 0.5) * 2.0; float s = smoothstep(1.0, 0.15, d); a *= s * s; tint *= 0.25 + 0.7 * s; }
                 else if (_Mode < 1.5) { a *= smoothstep(0.0, 0.25, i.uv.y) * smoothstep(1.0, 0.75, i.uv.y); }
                 else if (_Mode < 2.5) {
                     float x = i.uv.x * _Len * 0.42 * _Dir - _OTTime * 1.6;

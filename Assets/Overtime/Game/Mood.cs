@@ -66,7 +66,7 @@ namespace Overtime
             RenderSettings.fogColor = fog;
             RenderSettings.fogDensity = Mathf.Lerp(0.0105f, 0.0034f, day);
             RenderSettings.ambientLight = Color.Lerp(ambGround, ambSky, 0.6f) * 1.25f;
-            if (key) { key.color = Color.Lerp(Color.white, light, 0.5f); key.intensity = Mathf.Lerp(1.1f, 1.75f, day); }
+            if (key) { key.color = Color.Lerp(Color.white, light, 0.5f); key.intensity = Mathf.Lerp(1.4f, 1.75f, day); }
             foreach (var m in Mats.accentGlows) m.SetColor("_Tint", accent * Mathf.Lerp(2.2f, 1.0f, day));
         }
 

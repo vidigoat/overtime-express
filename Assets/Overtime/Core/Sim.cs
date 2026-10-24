@@ -52,7 +52,8 @@ namespace Overtime.Core
         // power-ups: burger rush, soda fizz, tip-jar magnet (seconds left) and a bubble-wrap shield
         public float rushT, fizzT, magnetT, dashT;
         public bool shield;
-        public const float RushTime = 4.5f, FizzTime = 9f, MagnetTime = 9f;
+        public float shieldT;
+        public const float RushTime = 30f, FizzTime = 30f, MagnetTime = 30f, ShieldTime = 30f;
         readonly float jumpV, drainMul = 1f, capsuleGain = 1.5f, chainWindow = ChainWindow, baseSpeed = BaseSpeed, coyoteTime = 0.1f, coinReach = 1.15f;
 
         public Sim(Level def, Gear g = null)
@@ -234,7 +235,7 @@ namespace Overtime.Core
 
         void Hit()
         {
-            if (shield) { shield = false; invuln = 1.2f; Emit(EvType.Wrap); return; }
+            if (shield) { shield = false; shieldT = 0; invuln = 1.2f; Emit(EvType.Wrap); return; }
             // bubble wrap soaks up the first crash of the run, even in overtime
             if (gear.wrap && !wrapUsed) { wrapUsed = true; invuln = 1.2f; Emit(EvType.Wrap); return; }
             hits++; Emit(EvType.Hit);
@@ -297,6 +298,7 @@ namespace Overtime.Core
             if (rushT > 0) rushT -= dt;
             if (fizzT > 0) fizzT -= dt;
             if (magnetT > 0) magnetT -= dt;
+            if (shieldT > 0) { shieldT -= dt; if (shieldT <= 0) shield = false; }
             if (jumpBuf > 0) jumpBuf -= dt;
             if (slideBuf > 0) slideBuf -= dt;
             if (wallBuf > 0) { wallBuf -= dt; TryWall(wallBufDir); }
@@ -451,7 +453,7 @@ namespace Overtime.Core
                     if (w.kind == PowerKind.Burger) rushT = RushTime;
                     else if (w.kind == PowerKind.Soda) fizzT = FizzTime;
                     else if (w.kind == PowerKind.TipJar) magnetT = MagnetTime;
-                    else shield = true;
+                    else { shield = true; shieldT = ShieldTime; }
                     Emit(EvType.Power, w.kind.ToString());
                 }
             }
