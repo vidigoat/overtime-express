@@ -269,6 +269,8 @@ namespace Overtime
                 hud.routeLock[i].gameObject.SetActive(!open);
                 Hud.SetPips(hud.cardPips[i], st, true);
                 hud.routeItem[i].text = open ? l.delivery.item : "Locked";
+                hud.routeLore[i].text = open ? Hud.DistrictLore[i] : "Finish the roof below this one.";
+                hud.routeLore[i].color = open ? new Color(Hud.Ink.r, Hud.Ink.g, Hud.Ink.b, 0.9f) : new Color(1f, 1f, 1f, 0.35f);
                 hud.routeBanner[i].color = open ? Color.white : new Color(0.6f, 0.6f, 0.75f);
             }
             for (int i = 0; i < 5; i++)
@@ -638,8 +640,53 @@ namespace Overtime
             if (tutMove == s.ToString() || (tutMove == "side" && (s == Swipe.Left || s == Swipe.Right))) { tutMove = null; hud.Tutorial(null, Vector2.zero); hud.Popup("NICE!", Hud.Green, 0.6f); Haptics.Tap(3); }
         }
 
+        /// <summary>The hand-off changes with how the parcel arrived. A perfect run, a late one, and a damaged one are different scenes.</summary>
+        static string HandoffLine(Delivery d, bool won, bool late, float condition, int stars, EndReason end)
+        {
+            if (!won)
+                return end == EndReason.Timeout
+                    ? "Dot:\n\"The clock won that one. Chain the next roof and it pays you back.\""
+                    : "Dot:\n\"Parcel down. Overtime only forgives you when you are already ahead.\"";
+            int k = Mathf.Clamp((int)d.kind, 0, 5);
+            if (condition < 0.5f) return HurtLine[k];
+            if (late) return LateLine[k];
+            if (stars >= 3) return PerfectLine[k];
+            return $"{d.customer}:\n{d.thanks}";
+        }
+
+        static readonly string[] HurtLine =
+        {
+            "Mia:\n\"It's squished. She ate it anyway. She's seven. Dot says land softer.\"",
+            "Bjorn:\n\"The crate burst on the last roof. The steak made it. You almost didn't.\"",
+            "Reginald:\n\"A chip. I heard it. The box on Dot's desk hummed, like it was laughing.\"",
+            "Luna:\n\"It went still. Tuesday is ruined. That box on Dot's desk is brighter tonight.\"",
+            "Ash:\n\"It stopped clucking. Speedy-Go will hear about this. The box is still ticking.\"",
+            "The box arrives dented. The note inside is smeared. The bell still rings.",
+        };
+        static readonly string[] LateLine =
+        {
+            "Mia:\n\"You're late. It's barely warm. She forgives you. Kids are kinder than Dot.\"",
+            "Bjorn:\n\"The gym closed. He waited on the roof anyway. Respect. Barely.\"",
+            "Reginald:\n\"A knight does not dine late. He kept the china. He will remember the minute.\"",
+            "Luna:\n\"It cooled on the last gap. She drank it cold and winced. The box glowed.\"",
+            "Ash:\n\"Late. He smiles like that was the point. Speedy-Go painted your time on a wall.\"",
+            "You reach the tower as the hands hit the hour. Nobody is there. The box opens itself.",
+        };
+        static readonly string[] PerfectLine =
+        {
+            "Mia:\n\"Warm, fast, not even tilted. She's telling all of Block 9 your name.\"",
+            "Bjorn:\n\"Not a scratch. He sets a protein bar on the crate. 'That ticking box is next.'\"",
+            "Reginald:\n\"Not a chip. He bows. 'The box on your dispatcher's desk knows your time now.'\"",
+            "Luna:\n\"Still fizzing. 'Tell Dot that box isn't a box. It's a clock that wants a runner.'\"",
+            "Ash:\n\"You beat his best time with a live crate. He hates it. 'Race me to the tower.'\"",
+            "Nobody's here. The box clicks open: a bike bell, and a note. \"For the fastest courier in the city.\"",
+        };
+
         void ShowDuelLeg()
         {
+            hud.resultsBg.color = new Color(0.06f, 0.04f, 0.14f);
+            hud.rAccent.color = Hud.Yellow;
+            hud.rHero.color = new Color(1f, 1f, 1f, 0f);
             int score = sim.finalScore;
             bool cleared = sim.ended == EndReason.Finish;
             if (duelSlot == 0)
@@ -696,10 +743,14 @@ namespace Overtime
                 PlayerPrefs.Save();
             }
             SetMode(Mode.Results);
-            hud.rTitle.text = won ? (sim.overtime ? "DELIVERED LATE!" : "DELIVERED!") : sim.ended == EndReason.Timeout ? "OUT OF TIME" : "PARCEL DOWN";
+            var dc = Hud.DistrictColors[Mathf.Clamp(d.district, 0, 5)];
+            hud.resultsBg.color = Color.Lerp(new Color(0.05f, 0.03f, 0.1f), dc, won ? 0.42f : 0.16f);
+            hud.rAccent.color = won ? dc : Hud.Red;
+            hud.rHero.sprite = UIKit.Icon(d.itemModel, 30);
+            hud.rHero.color = won ? Color.white : new Color(1f, 1f, 1f, 0.35f);
+            hud.rTitle.text = won ? (sim.overtime ? "DELIVERED LATE" : "DELIVERED") : sim.ended == EndReason.Timeout ? "OUT OF TIME" : "PARCEL DOWN";
             hud.rTitle.color = won ? Color.white : Hud.Red;
-            hud.rQuote.text = won ? $"{d.customer}:\n{d.thanks}" : sim.ended == EndReason.Timeout
-                ? "Dot: \"Overtime ran dry, boss. Chain your moves and it pays itself back.\"" : "Dot: \"One hit in overtime and it's over. Clock in earlier next time.\"";
+            hud.rQuote.text = HandoffLine(d, won, sim.overtime, sim.condition, stars, sim.ended);
             var lines = new List<string>(); var amts = new List<int>();
             if (won)
             {
