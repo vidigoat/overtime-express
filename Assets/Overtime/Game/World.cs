@@ -204,7 +204,28 @@ namespace Overtime
                 var beam2 = Mesh(Mats.Quad, Mats.Fx(1, info.color * 0.55f), Vector3.zero, Quaternion.identity, new Vector3(1.1f, 7f, 1), false); beam2.transform.SetParent(holder, false); beam2.transform.localPosition = new Vector3(0, 3.5f, 0); beam2.transform.localRotation = Quaternion.Euler(0, 90, 0);
                 var spin = new GameObject("Spin").transform; spin.SetParent(holder, false); spin.localPosition = new Vector3(0, 1.15f, 0);
                 var model = art.Spawn(info.model, spin, Vector3.zero, Quaternion.identity, 1f, false);
-                if (model) { model.localPosition = info.offset; model.localScale = Vector3.one * info.scale; }
+                if (model)
+                {
+                    model.localPosition = info.offset; model.localScale = Vector3.one * info.scale;
+                    // a broken or built-in shader draws nothing in the web player; fall back to the lit courier shader
+                    foreach (var rend in model.GetComponentsInChildren<Renderer>())
+                    {
+                        var mats = rend.sharedMaterials;
+                        bool swap = false;
+                        for (int m = 0; m < mats.Length; m++)
+                        {
+                            var sh = mats[m] ? mats[m].shader : null;
+                            if (sh == null || sh.name.Contains("Error") || sh.name == "Standard" || sh.name.StartsWith("Legacy"))
+                            { mats[m] = Mats.Lit(Color.white, 0.55f); swap = true; }
+                        }
+                        if (swap) rend.sharedMaterials = mats;
+                    }
+                }
+                else
+                {
+                    var stand = Mesh(Mats.Cube, Mats.Glow(info.color, 2.4f), Vector3.zero, Quaternion.identity, Vector3.one * 0.42f, false);
+                    stand.transform.SetParent(spin, false);
+                }
                 if (w.kind == PowerKind.Wrap)
                 {
                     // the bubble-wrap parcel sits inside a shimmering bubble

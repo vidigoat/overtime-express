@@ -216,62 +216,57 @@ namespace Overtime
             routeScroll.movementType = ScrollRect.MovementType.Elastic; routeScroll.decelerationRate = 0.12f; routeScroll.scrollSensitivity = 30;
 
             var dotsLayer = Row(routeContent, TextAnchor.UpperCenter, 0, 0, 0, 0);
-            routeHalo = Img(routeContent, Color.white, null, TextAnchor.UpperCenter, 0, 0, 136, 136); routeHalo.sprite = ring; routeHalo.raycastTarget = false;
-            float y = -26; var spots = new List<Vector2>();
-            float[] xs = { 0, -78, 0, 78, 0, -78 };
+            routeHalo = Img(routeContent, Color.white, null, TextAnchor.UpperCenter, 0, 0, 84, 84); routeHalo.sprite = ring; routeHalo.raycastTarget = false;
+            float y = -18; var spots = new List<Vector2>();
+            const float cardW = 352, cardH = 124;
             for (int i = 0; i < 6; i++)
             {
-                var c = DistrictColors[i];
-                // district banner: a glossy lipped slab in the district's colour, with the parcel's portrait on the right
-                var ban = Img(routeContent, c, UIKit.Panel(18, 7), TextAnchor.UpperCenter, 0, y, 352, 112); ban.raycastTarget = false; routeBan[i] = ban;
-                Txt(ban.rectTransform, $"DISTRICT {i + 1}", 11, TextAnchor.UpperLeft, 18, -12, 200, 16, new Color(Ink.r, Ink.g, Ink.b, 0.72f), false);
-                routeBanner[i] = Txt(ban.rectTransform, DistrictNames[i], 26, TextAnchor.UpperLeft, 16, -26, 230, 32, Color.white, true, 2); routeBanner[i].font = italic;
-                routeLore[i] = Txt(ban.rectTransform, DistrictLore[i], 12, TextAnchor.UpperLeft, 16, -62, 240, 36, new Color(Ink.r, Ink.g, Ink.b, 0.9f), false);
+                // one night card per district. The whole card is the button. A thin stripe carries the district colour.
+                routeNode[i] = Img(routeContent, new Color(0.09f, 0.07f, 0.16f, 0.98f), UIKit.Panel(16, 5), TextAnchor.UpperCenter, 0, y, cardW, cardH);
+                cards[i] = routeNode[i].gameObject.AddComponent<Button>(); cards[i].transition = Selectable.Transition.None; cards[i].targetGraphic = routeNode[i];
+                routeNode[i].gameObject.AddComponent<Squish>().press = new Vector2(0, -3);
+                var nr = routeNode[i].rectTransform;
+                routeBan[i] = Img(nr, DistrictColors[i], null, TextAnchor.MiddleLeft, 10, 2, 5, cardH - 28); routeBan[i].raycastTarget = false;
+                Txt(nr, $"0{i + 1}", 11, TextAnchor.UpperLeft, 24, -12, 40, 16, new Color(1, 1, 1, 0.45f), false);
+                routeBanner[i] = Txt(nr, DistrictNames[i], 22, TextAnchor.UpperLeft, 24, -28, 210, 28, Color.white, false); routeBanner[i].font = italic;
+                routeLore[i] = Txt(nr, DistrictLore[i], 12, TextAnchor.UpperLeft, 24, -58, 210, 34, new Color(0.78f, 0.82f, 1f), false);
                 routeLore[i].horizontalOverflow = HorizontalWrapMode.Wrap; routeLore[i].verticalOverflow = VerticalWrapMode.Truncate;
-                routeBannerIcon[i] = Img(ban.rectTransform, Color.white, null, TextAnchor.MiddleRight, -12, 4, 78, 78); routeBannerIcon[i].raycastTarget = false; routeBannerIcon[i].preserveAspect = true;
-                y -= 112 + 28;
-                float x = xs[i];
-                spots.Add(new Vector2(x, y - 50));
-                // the stop: a fat coin with the parcel on its face
-                routeNode[i] = Img(routeContent, c, null, TextAnchor.UpperCenter, x, y, 108, 108); routeNode[i].sprite = UIKit.Coin;
-                cards[i] = routeNode[i].gameObject.AddComponent<Button>(); cards[i].transition = Selectable.Transition.None;
-                routeNode[i].gameObject.AddComponent<Squish>().press = new Vector2(0, -5);
-                routeIcon[i] = Img(routeNode[i].rectTransform, Color.white, null, TextAnchor.MiddleCenter, 0, 7, 66, 66); routeIcon[i].raycastTarget = false; routeIcon[i].preserveAspect = true;
-                cardText[i] = Txt(routeNode[i].rectTransform, "", 30, TextAnchor.MiddleCenter, 0, 7, 100, 60, Color.white, true, 2); cardText[i].supportRichText = true;
-                // badges: a green tick when cleared, a padlock when locked
-                var tb = Img(routeNode[i].rectTransform, Green, null, TextAnchor.MiddleCenter, 36, -30, 36, 36); tb.sprite = UIKit.Coin; tb.raycastTarget = false;
-                var tk = Tick(tb.rectTransform); tk.rectTransform.localScale = Vector3.one * 0.62f; tk.rectTransform.anchoredPosition = new Vector2(1, 3);
-                foreach (var im in tk.GetComponentsInChildren<Image>()) if (im != tk) im.color = Color.white;
-                routeTick[i] = tb;
-                var lb = Img(routeNode[i].rectTransform, new Color(0.2f, 0.2f, 0.32f), null, TextAnchor.MiddleCenter, 36, -30, 36, 36); lb.sprite = UIKit.Coin; lb.raycastTarget = false;
-                var shackle = Img(lb.rectTransform, new Color(0.75f, 0.78f, 0.9f), null, TextAnchor.MiddleCenter, 0, 7, 14, 14); shackle.sprite = ring; shackle.raycastTarget = false;
-                var lockBody = Img(lb.rectTransform, new Color(0.75f, 0.78f, 0.9f), round, TextAnchor.MiddleCenter, 0, 0, 18, 12); lockBody.raycastTarget = false;
-                routeLock[i] = lb;
+                routeItem[i] = Txt(nr, "", 12, TextAnchor.UpperLeft, 24, -92, 200, 18, Yellow, false);
                 cardPips[i] = new Image[3];
                 for (int k = 0; k < 3; k++)
                 {
-                    var pip = Img(routeContent, new Color(1, 1, 1, 0.2f), null, TextAnchor.UpperCenter, x + (k - 1) * 20, y - 118, 12, 12);
-                    pip.rectTransform.localRotation = Quaternion.Euler(0, 0, 45); pip.raycastTarget = false; cardPips[i][k] = pip;
+                    var pip = Img(nr, new Color(1, 1, 1, 0.18f), null, TextAnchor.UpperLeft, 168 + k * 16, -34, 8, 8);
+                    pip.sprite = disc; pip.raycastTarget = false; cardPips[i][k] = pip;
                 }
-                routeItem[i] = Txt(routeContent, "", 13, TextAnchor.UpperCenter, x, y - 132, 220, 18, Text2, false);
-                y -= 168;
+                // parcel sits in a ring on the right, not a second giant coin under the card
+                var well = Img(nr, new Color(0, 0, 0, 0.35f), null, TextAnchor.MiddleRight, -16, 2, 72, 72); well.sprite = disc; well.raycastTarget = false;
+                routeIcon[i] = Img(well.rectTransform, Color.white, null, TextAnchor.MiddleCenter, 0, 0, 52, 52); routeIcon[i].raycastTarget = false; routeIcon[i].preserveAspect = true;
+                routeBannerIcon[i] = Img(nr, Color.white, null, TextAnchor.MiddleRight, -16, 2, 1, 1); routeBannerIcon[i].raycastTarget = false;
+                cardText[i] = Txt(well.rectTransform, "", 22, TextAnchor.MiddleCenter, 0, 0, 64, 40, Color.white, true, 2);
+                var tb = Img(nr, Green, null, TextAnchor.UpperRight, -18, -10, 22, 22); tb.sprite = disc; tb.raycastTarget = false;
+                var tk = Tick(tb.rectTransform); tk.rectTransform.localScale = Vector3.one * 0.42f; tk.rectTransform.anchoredPosition = new Vector2(0, 1);
+                foreach (var im in tk.GetComponentsInChildren<Image>()) if (im != tk) im.color = Color.white;
+                routeTick[i] = tb;
+                var lb = Img(nr, new Color(0.15f, 0.14f, 0.24f), null, TextAnchor.UpperRight, -18, -10, 22, 22); lb.sprite = disc; lb.raycastTarget = false;
+                var shackle = Img(lb.rectTransform, new Color(0.75f, 0.78f, 0.9f), null, TextAnchor.MiddleCenter, 0, 4, 10, 8); shackle.sprite = ring; shackle.raycastTarget = false;
+                var lockBody = Img(lb.rectTransform, new Color(0.75f, 0.78f, 0.9f), round, TextAnchor.MiddleCenter, 0, -2, 12, 8); lockBody.raycastTarget = false;
+                routeLock[i] = lb;
+                spots.Add(new Vector2(-168, y - cardH * 0.5f));
+                y -= cardH + 14;
                 if (i < 5)
                 {
-                    // a pay chest between districts
-                    float cx = -xs[i] * 0.4f + (i % 2 == 0 ? 92 : -92);
-                    spots.Add(new Vector2(cx, y - 36));
-                    // a pay stop: a gold coin carrying a big Tock, the game's own currency
-                    routeChest[i] = Img(routeContent, new Color(1f, 0.78f, 0.2f), null, TextAnchor.UpperCenter, cx, y, 86, 86); routeChest[i].sprite = UIKit.Coin;
+                    spots.Add(new Vector2(-168, y - 18));
+                    routeChest[i] = Img(routeContent, new Color(0.12f, 0.1f, 0.2f, 0.95f), pill, TextAnchor.UpperCenter, 28, y, 280, 36);
                     chestBtn[i] = routeChest[i].gameObject.AddComponent<Button>(); chestBtn[i].transition = Selectable.Transition.None; chestBtn[i].targetGraphic = routeChest[i];
-                    routeChest[i].gameObject.AddComponent<Squish>().press = new Vector2(0, -4);
-                    chestIcon[i] = Tock(routeChest[i].rectTransform, 0, 44, TextAnchor.MiddleCenter); chestIcon[i].rectTransform.anchoredPosition = new Vector2(0, 6);
-                    var ct = Img(routeChest[i].rectTransform, Green, null, TextAnchor.MiddleCenter, 30, -26, 30, 30); ct.sprite = UIKit.Coin; ct.raycastTarget = false;
-                    var ctk = Tick(ct.rectTransform); ctk.rectTransform.localScale = Vector3.one * 0.5f; ctk.rectTransform.anchoredPosition = new Vector2(1, 3);
+                    routeChest[i].gameObject.AddComponent<Squish>().press = new Vector2(0, -2);
+                    chestIcon[i] = Tock(routeChest[i].rectTransform, 10, 22, TextAnchor.MiddleLeft); chestIcon[i].rectTransform.anchoredPosition = new Vector2(16, 0);
+                    var ct = Img(routeChest[i].rectTransform, Green, null, TextAnchor.MiddleRight, -8, 0, 18, 18); ct.sprite = disc; ct.raycastTarget = false;
+                    var ctk = Tick(ct.rectTransform); ctk.rectTransform.localScale = Vector3.one * 0.4f;
                     foreach (var im in ctk.GetComponentsInChildren<Image>()) if (im != ctk) im.color = Color.white;
                     chestTick[i] = ct;
-                    var tagBg = Img(routeContent, new Color(Ink.r, Ink.g, Ink.b, 0.85f), pill, TextAnchor.UpperCenter, cx, y - 90, 100, 26); tagBg.raycastTarget = false; chestTag[i] = tagBg;
-                    chestText[i] = Txt(tagBg.rectTransform, "", 13, TextAnchor.MiddleCenter, 0, 0, 100, 26, Yellow, false);
-                    y -= 128;
+                    chestTag[i] = routeChest[i];
+                    chestText[i] = Txt(routeChest[i].rectTransform, "", 13, TextAnchor.MiddleLeft, 40, 0, 200, 32, Yellow, false);
+                    y -= 50;
                 }
             }
             // dotted path between every stop, under everything
@@ -282,15 +277,14 @@ namespace Overtime
                 for (int k = 1; k < n; k++)
                 {
                     var p = Vector2.Lerp(a, b, k / (float)n);
-                    var d = Img(dl, new Color(1f, 0.82f, 0.35f, 0.28f), null, TextAnchor.MiddleCenter, p.x, p.y, 14, 14); d.sprite = disc; d.raycastTarget = false;
+                    var d = Img(dl, new Color(1f, 0.82f, 0.35f, 0.45f), null, TextAnchor.MiddleCenter, p.x, p.y, 4, 4); d.sprite = disc; d.raycastTarget = false;
                     routeDots.Add((d, i));
                 }
             }
             routeContent.sizeDelta = new Vector2(0, -y + 40);
             // START bubble with a little tail
-            routeStart = Img(routeContent, Color.white, UIKit.Panel(14, 5), TextAnchor.UpperCenter, 0, 0, 112, 46); routeStart.raycastTarget = false;
-            var tail = Img(routeStart.rectTransform, Color.white, null, TextAnchor.LowerCenter, 0, 3, 16, 16); tail.rectTransform.localRotation = Quaternion.Euler(0, 0, 45); tail.raycastTarget = false; tail.transform.SetAsFirstSibling();
-            Txt(routeStart.rectTransform, "DELIVER", 16, TextAnchor.MiddleCenter, 0, 3, 112, 40, Ink, false).font = italic;
+            routeStart = Img(routeContent, Yellow, pill, TextAnchor.UpperCenter, 0, 0, 96, 28); routeStart.raycastTarget = false;
+            Txt(routeStart.rectTransform, "DELIVER", 13, TextAnchor.MiddleCenter, 0, 0, 96, 28, Ink, false).font = italic;
 
             // header and footer
             var head = Img(r, new Color(0.06f, 0.04f, 0.17f, 0.97f), null, TextAnchor.UpperCenter, 0, 0, 0, 66); head.rectTransform.anchorMin = new Vector2(0, 1); head.rectTransform.anchorMax = new Vector2(1, 1);
@@ -302,7 +296,8 @@ namespace Overtime
             routeWallet = Txt(wp.rectTransform, "0", 20, TextAnchor.MiddleLeft, 36, 0, 86, 32, Color.white, true);
             var foot = Img(r, new Color(0.06f, 0.04f, 0.17f, 0.97f), null, TextAnchor.LowerCenter, 0, 0, 0, 92); foot.rectTransform.anchorMin = new Vector2(0, 0); foot.rectTransform.anchorMax = new Vector2(1, 0);
             foot.rectTransform.offsetMin = new Vector2(-200, -200); foot.rectTransform.offsetMax = new Vector2(200, 92);
-            routeBack = Btn(r, "BACK TO HQ", TextAnchor.LowerCenter, 0, 20, 240, 58, Color.white, Ink, 21);
+            routeBack = Btn(r, "BACK TO HQ", TextAnchor.LowerCenter, 0, 18, 220, 48, new Color(0.1f, 0.08f, 0.18f), Yellow, 16);
+            routeBack.image.sprite = pill;
         }
 
         Image Tick(RectTransform parent)
@@ -656,9 +651,9 @@ namespace Overtime
                 if (pulsePin >= 0)
                 {
                     var n = routeNode[pulsePin].rectTransform;
-                    routeStart.rectTransform.anchoredPosition = n.anchoredPosition + new Vector2(0, 62 + 4 * Mathf.Sin(now * 3.9f));
+                    routeStart.rectTransform.anchoredPosition = n.anchoredPosition + new Vector2(118, -18 + 3 * Mathf.Sin(now * 3.9f));
                     float br = 0.5f + 0.5f * Mathf.Sin(now * 3.9f);
-                    routeHalo.rectTransform.anchoredPosition = n.anchoredPosition + new Vector2(0, 14);
+                    routeHalo.rectTransform.anchoredPosition = n.anchoredPosition + new Vector2(140, -62);
                     routeHalo.rectTransform.localScale = Vector3.one * (0.96f + 0.1f * br);
                     var hc = DistrictColors[pulsePin]; routeHalo.color = new Color(hc.r, hc.g, hc.b, 0.25f + 0.3f * (1 - br));
                 }

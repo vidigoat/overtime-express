@@ -259,18 +259,18 @@ namespace Overtime
             {
                 var l = Levels.All[i]; bool open = Unlocked(i); int st = Stars(l.id); bool done = st > 0;
                 var c = Hud.DistrictColors[i];
-                hud.routeNode[i].color = done ? Hud.Yellow : open ? c : new Color(0.3f, 0.3f, 0.45f);
+                hud.routeNode[i].color = new Color(0.09f, 0.07f, 0.16f, 0.98f);
                 var icon = UIKit.Icon(l.delivery.itemModel);
                 hud.routeIcon[i].sprite = icon; hud.routeIcon[i].color = open ? Color.white : new Color(0.12f, 0.1f, 0.25f, 0.85f);
                 hud.routeBannerIcon[i].sprite = icon; hud.routeBannerIcon[i].color = open ? Color.white : new Color(0.1f, 0.08f, 0.2f, 0.6f);
-                hud.routeBan[i].color = open ? c : new Color(0.32f, 0.32f, 0.48f);
+                hud.routeBan[i].color = done ? Hud.Yellow : open ? c : new Color(0.28f, 0.28f, 0.4f);
                 hud.cardText[i].text = icon == null ? (open ? (i + 1).ToString() : "?") : "";
                 hud.routeTick[i].gameObject.SetActive(done);
                 hud.routeLock[i].gameObject.SetActive(!open);
                 Hud.SetPips(hud.cardPips[i], st, true);
                 hud.routeItem[i].text = open ? l.delivery.item : "Locked";
                 hud.routeLore[i].text = open ? Hud.DistrictLore[i] : "Finish the roof below this one.";
-                hud.routeLore[i].color = open ? new Color(Hud.Ink.r, Hud.Ink.g, Hud.Ink.b, 0.9f) : new Color(1f, 1f, 1f, 0.35f);
+                hud.routeLore[i].color = open ? new Color(0.78f, 0.82f, 1f) : new Color(1f, 1f, 1f, 0.35f);
                 hud.routeBanner[i].color = open ? Color.white : new Color(0.6f, 0.6f, 0.75f);
             }
             for (int i = 0; i < 5; i++)
