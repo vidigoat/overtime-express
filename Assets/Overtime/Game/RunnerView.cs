@@ -106,7 +106,7 @@ namespace Overtime
                 if (cheerT < 1.25f) { target[idx["Interact"]] = 1; Loop("Interact", 1); if (cheerT - dt <= 0) plays[idx["Interact"]].SetTime(0); }
                 else { target[idx["Dance_Loop"]] = 1; Loop("Dance_Loop", 1); }
             }
-            else if (riding) { target[idx["Driving_Loop"]] = 1; Loop("Driving_Loop", 1); tHip = 0.42f; tPitch = 8; }
+            else if (riding) { target[idx["Driving_Loop"]] = 1; Loop("Driving_Loop", 1); tHip = 0.58f; tPitch = 8; }
             else switch (sim.state)
             {
                 case RunState.Slide: target[idx["Slide_Loop"]] = 1; Loop("Slide_Loop", 1); break;

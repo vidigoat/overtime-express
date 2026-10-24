@@ -46,18 +46,24 @@ Shader "Overtime/Building"
                     float2 id = floor(g) + vId; float2 f = frac(g);
                     float h = ot_h21(id);
                     float floorOn = step(0.35, ot_h21(float2(floor(g.y), vId)));
-                    float lit = step(0.62, h) * floorOn;
+                    float lit = step(0.48, h) * floorOn;
                     lit *= lerp(1.0, step(0.4, ot_h21(id + floor(_OTTime * 9.0))), _OTOver);
                     float w = smoothstep(0.16, 0.22, f.x) * smoothstep(0.84, 0.78, f.x) * smoothstep(0.25, 0.32, f.y) * smoothstep(0.78, 0.7, f.y);
                     half3 wc = lerp(_OTWin.rgb, _OTWin2.rgb, step(0.82, ot_h21(id * 1.31)));
                     night += wc * w * lit * (0.35 + 0.9 * ot_h21(id * 1.7));
                     float bandY = floor(bh * 9.0) * 6.0 - 20.0;
                     night += _OTWin2.rgb * smoothstep(0.22, 0.1, abs(W.y - bandY)) * step(0.55, bh) * 1.6;
+                    float banner = smoothstep(0.04, 0.0, abs(frac(u * 0.17 + vId) - 0.5) - 0.47);
+                    banner *= step(0.72, ot_h21(float2(vId, 4.4))) * smoothstep(-5.0, 12.0, W.y) * (1.0 - smoothstep(40.0, 80.0, W.y));
+                    night += _OTWin2.rgb * banner * 0.9;
                     night += _OTWin.rgb * 0.035 * smoothstep(-40.0, 20.0, W.y);
                     half3 glass = lerp(half3(0.25, 0.42, 0.62), half3(0.75, 0.9, 1.0), smoothstep(0.3, 0.75, f.y + f.x * 0.3)) * shade;
                     day = lerp(day, glass, w * 0.92);
                     day *= 1.0 - 0.1 * step(0.94, f.y);
                 } else night *= 1.4;
+                // a warm horizon band so the towers catch the sky the way a diorama catches sunset
+                float horGlow = exp(-pow(W.y * 0.012, 2.0)) * (1.0 - abs(n.y));
+                night += _OTHor.rgb * horGlow * 0.38;
                 half3 col = lerp(night, day, _OTDay);
                 float d = length(W - _WorldSpaceCameraPos);
                 float fog = 1.0 - exp(-_OTFarFog * _OTFarFog * d * d);

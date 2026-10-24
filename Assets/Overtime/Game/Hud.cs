@@ -30,7 +30,7 @@ namespace Overtime
         public Text wallet, company, rankName, rankSub, playSub;
         public Image rankFill;
         public Button[] cards = new Button[6]; public Text[] cardText = new Text[6]; public Image[][] cardPips = new Image[6][]; public Image[] cardBg = new Image[6];
-        public Button shopBtn, introGo, playBtn, routeBtn, routeBack;
+        public Button shopBtn, introGo, playBtn, routeBtn, routeBack, duelBtn;
         // route
         public GameObject routeScreen; public RectTransform routeContent; public ScrollRect routeScroll; public Text routeWallet;
         public Image[] routeNode = new Image[6], routeTick = new Image[6], routeChest = new Image[5], routeIcon = new Image[6], routeBannerIcon = new Image[6], routeLock = new Image[6], routeBan = new Image[6], chestIcon = new Image[5]; public Image routeStart, routeHalo; public Image[] chestTick = new Image[5], chestTag = new Image[5];
@@ -42,6 +42,7 @@ namespace Overtime
         public Text bNum, bItem, bFor, bRule, bDot, bPay, bGoals; public Image bRuleBg, bStage, bGlow, bIcon; public Image[] bGoalTile = new Image[3], bGoalPip = new Image[3]; public Text[] bGoalText = new Text[3]; public Button bStart, bBack;
         // results
         public Text rTitle, rQuote, rLines, rAmounts, rTotal, rRank; public Image[] rPips; public Image rRankFill; public Button retry, next, toMenu;
+        public string wageWord = "WAGES";
         // shop
         public Text sWallet, sNote; public Button[] buy = new Button[7]; public Text[] sName = new Text[7]; public Text[] sPrice = new Text[7]; public Image[] sBg = new Image[7]; public Button sBack;
 
@@ -167,10 +168,11 @@ namespace Overtime
             rankFill = Img(rb.rectTransform, Yellow, pill, TextAnchor.MiddleCenter, 0, 0, 0, 0); Stretch(rankFill.rectTransform);
             rankSub = Txt(rr, "", 11, TextAnchor.UpperLeft, 66, -44, 280, 14, Text2, false);
 
-            // the three things you do: deliver the next job, look at the route, spend wages
-            playBtn = Btn(m, "", TextAnchor.LowerCenter, 0, 92, 352, 72, Yellow, Ink, 30);
+            // deliver, duel a friend on this phone, look at the route, spend wages
+            playBtn = Btn(m, "", TextAnchor.LowerCenter, 0, 156, 352, 72, Yellow, Ink, 30);
             var pt = playBtn.GetComponentInChildren<Text>(); pt.text = "DELIVER"; pt.rectTransform.anchoredPosition = new Vector2(0, 9); pt.font = italic;
             playSub = Txt(playBtn.GetComponent<RectTransform>(), "", 13, TextAnchor.MiddleCenter, 0, -18, 330, 16, new Color(Ink.r, Ink.g, Ink.b, 0.8f), false);
+            duelBtn = Btn(m, "DUEL  \u00b7  200", TextAnchor.LowerCenter, 0, 90, 352, 50, Pink, Ink, 20);
             routeBtn = Btn(m, "CITY ROUTE", TextAnchor.LowerCenter, -90, 22, 172, 54, Cyan, Ink, 20);
             shopBtn = Btn(m, "GEAR SHOP", TextAnchor.LowerCenter, 90, 22, 172, 54, Color.white, Ink, 20);
         }
@@ -537,6 +539,7 @@ namespace Overtime
             popup.fontSize = len > 12 ? 24 : len > 9 ? 28 : 36;
             popup.text = s; popupColor = c; popupT = dur;
         }
+        public void Label(Button b, string s) { var t = b.GetComponentInChildren<Text>(); if (t) t.text = s; }
         public void Hint(string s) { hint.text = s; hintT = 3.4f; }
         public void Cine(string s, Color c, float dur = 0.5f) { cine.text = s; cine.color = c; cineT = dur; }
         public void BumpClock() { clockBump = 1; }
@@ -579,7 +582,9 @@ namespace Overtime
             rLines.text = l; rAmounts.text = a;
             float tt = start + n * lineGap;
             float kt = Mathf.Clamp01((resT - tt) / 0.6f);
-            rTotal.text = $"WAGES  +{Mathf.RoundToInt(resTotal * (1 - Mathf.Pow(1 - kt, 3))):N0} TOCKS";
+            int shown = Mathf.RoundToInt(Mathf.Abs(resTotal) * (1 - Mathf.Pow(1 - kt, 3)));
+            string sign = resTotal < 0 || wageWord == "YOU PAY" ? "" : "+";
+            rTotal.text = $"{wageWord}  {sign}{shown} TOCKS";
             if (prev < tt + 0.6f && resT >= tt + 0.6f) onTick(1);
             for (int i = 0; i < 3; i++)
             {

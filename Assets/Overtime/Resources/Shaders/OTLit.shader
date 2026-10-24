@@ -36,11 +36,18 @@ Shader "Overtime/Lit"
                 half3 albedo = i.color.rgb * _Tint.rgb;
                 Light l = GetMainLight(TransformWorldToShadowCoord(i.positionWS));
                 half ndl = saturate(dot(n, l.direction));
+                // half-lambert plus a cool shadow fill: a small figure stays readable instead of dropping to black
+                half wrap = ndl * 0.62 + 0.38;
                 half3 amb = lerp(_OTAmbGround.rgb, _OTAmbSky.rgb, n.y * 0.5 + 0.5);
-                half3 col = albedo * (amb + l.color * ndl * l.shadowAttenuation);
+                half3 col = albedo * (amb * 1.2 + l.color * wrap * l.shadowAttenuation);
+                col += albedo * _OTAbyss.rgb * (1.0 - ndl) * 0.22;
                 half3 v = normalize(_WorldSpaceCameraPos - i.positionWS);
-                half rim = pow(1.0 - saturate(dot(n, v)), 2.6);
-                col += _OTRim.rgb * rim * _Rim * (0.35 + 0.65 * saturate(n.y * 0.5 + 0.5));
+                half spec = pow(saturate(dot(normalize(v + l.direction), n)), 28.0) * l.shadowAttenuation;
+                col += l.color * spec * 0.16;
+                half rim = pow(1.0 - saturate(dot(n, v)), 2.2);
+                col += _OTRim.rgb * rim * _Rim * 0.9;
+                half ink = pow(1.0 - saturate(dot(n, v)), 6.0);
+                col *= 1.0 - ink * 0.35;
                 col += albedo * _Emission;
                 col = MixFog(col, i.fogFactor);
                 return half4(col, 1);

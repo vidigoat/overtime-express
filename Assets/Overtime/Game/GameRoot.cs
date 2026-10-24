@@ -20,6 +20,8 @@ namespace Overtime
         public Sim sim;
         public int levelIdx;
         public bool botMode;
+        bool duel; int duelSlot, duelPhase, scoreA, scoreB;
+        public const int Stake = 200;
         Bot bot;
         World world; RunnerView runner; CameraRig rig; Fx fx; Hud hud; SwipeInput input; Sfx sfx; Mood mood = new Mood();
         Light key, runnerLight; GameObject bike; Transform bubble;
@@ -34,9 +36,10 @@ namespace Overtime
         {
             ("gloves", "GRIP GLOVES", "Forgiving ledge jumps", 250), ("soles", "SPRING SOLES", "Jump higher", 400), ("magnet", "TOCK MAGNET", "Pulls Tocks toward you", 600),
             ("flask", "THERMO FLASK", "Slow-mo burns no extra time", 700), ("wrap", "BUBBLE WRAP", "First crash each run is free", 900),
-            ("board", "SKATEBOARD", "Faster, and grinds pay double", 1300), ("bike", "THE BIKE", "Wages x1.5. The dream.", 3000),
+            ("board", "SKATEBOARD", "Faster, and grinds pay double", 1300), ("bike", "THE BIKE", "Wages x1.5. You still run the roofs.", 3000),
         };
         public static int Wallet { get => PlayerPrefs.GetInt("ot.wallet", 0); set { PlayerPrefs.SetInt("ot.wallet", value); PlayerPrefs.Save(); } }
+        static int FriendWallet { get => PlayerPrefs.GetInt("ot.friend", 400); set { PlayerPrefs.SetInt("ot.friend", value); PlayerPrefs.Save(); } }
         public static bool Owns(string id) => PlayerPrefs.GetInt("ot.gear." + id, 0) == 1;
         static int Best(string id) => PlayerPrefs.GetInt("ot.best." + id, 0);
         static int Stars(string id) => PlayerPrefs.GetInt("ot.stars." + id, 0);
@@ -117,13 +120,18 @@ namespace Overtime
             hud.routeBack.onClick.AddListener(ToMenu);
             for (int i = 0; i < 5; i++) { int k = i; hud.chestBtn[i].onClick.AddListener(() => ClaimChest(k)); }
             hud.retry.onClick.AddListener(() => StartLevel(levelIdx, botMode));
-            hud.next.onClick.AddListener(() => { int n = Mathf.Min(Levels.All.Length - 1, levelIdx + 1); if (botMode) StartLevel(n, true); else OpenBrief(n); });
+            hud.next.onClick.AddListener(() => {
+                if (duelPhase == 1) { duelSlot = 1; StartLevel(levelIdx, false); hud.Popup("PLAYER 2\n<size=18>same route, 200 tocks</size>", Hud.Cyan, 1.2f); return; }
+                if (duelPhase == 2) { StartDuel(); return; }
+                int n = Mathf.Min(Levels.All.Length - 1, levelIdx + 1); if (botMode) StartLevel(n, true); else OpenBrief(n);
+            });
             hud.toMenu.onClick.AddListener(ToMenu);
             hud.shopBtn.onClick.AddListener(OpenShop);
             hud.playBtn.onClick.AddListener(() => { briefFromRoute = false; OpenBrief(NextJob()); });
             hud.sBack.onClick.AddListener(ToMenu);
             for (int i = 0; i < GearList.Length; i++) { int k = i; hud.buy[i].onClick.AddListener(() => Buy(k)); }
             hud.introGo.onClick.AddListener(() => { PlayerPrefs.SetInt("ot.intro", 1); PlayerPrefs.Save(); ToMenu(); });
+            hud.duelBtn.onClick.AddListener(StartDuel);
 
             ToMenu();
             if (PlayerPrefs.GetInt("ot.intro", 0) == 0)
@@ -178,6 +186,8 @@ namespace Overtime
             Part(PrimitiveType.Cube, t, new Vector3(0.03f, 0.8f, -0.98f), new Vector3(0.07f, 0.025f, 0.01f), Vector3.zero, dark);
             Part(PrimitiveType.Cube, t, new Vector3(0, 0.96f, -0.78f), new Vector3(0.46f, 0.03f, 0.38f), Vector3.zero, dark);                 // box lid
             var under = Part(PrimitiveType.Quad, t, new Vector3(0, 0.06f, 0), new Vector3(0.9f, 1.9f, 1), new Vector3(90, 0, 0), Mats.Fx(1, Mats.Hex(0xff3db8) * 0.5f));   // underglow
+            g.transform.localScale = Vector3.one * 0.78f;
+            g.transform.localPosition = new Vector3(0f, 0.04f, -0.15f);
             g.SetActive(false);
             return g;
         }
@@ -214,8 +224,18 @@ namespace Overtime
             hud.Popup("3", Color.white, 0.55f); sfx.Play("beep");
         }
 
+        void StartDuel()
+        {
+            if (Wallet < Stake) { hud.Popup($"NEED {Stake - Wallet:N0} MORE TOCKS", Hud.Yellow, 1.2f); return; }
+            if (FriendWallet < Stake) { hud.Popup("YOUR FRIEND IS OUT OF TOCKS", Hud.Text2, 1.2f); return; }
+            duel = true; duelPhase = 0; duelSlot = 0; hud.wageWord = "WAGES";
+            StartLevel(NextJob(), false);
+            hud.Popup("PLAYER 1\n<size=18>winner takes 200 tocks</size>", Hud.Yellow, 1.3f);
+        }
+
         public void ToMenu()
         {
+            duel = false; duelPhase = 0; hud.wageWord = "WAGES"; hud.Label(hud.next, "NEXT JOB");
             hud.wallet.text = Wallet.ToString("N0");
             hud.company.text = Owns("bike") ? "YOUR COMPANY · NOW WITH WHEELS" : "YOUR COMPANY";
             int total = TotalStars(), rank = RankOf(total);
@@ -435,8 +455,8 @@ namespace Overtime
             dashT = Mathf.Max(0, dashT - simDt); hitT = Mathf.Max(0, hitT - rdt * 2.4f);
             var roof = sim.PeekRoof(sim.s);
             Shader.SetGlobalVector("_OTRunner", new Vector4(sim.x, sim.y, sim.s, roof != null ? sim.y - roof.y : 99));
-            // once it's bought, Kip rides it on every delivery (and steps off to hand the parcel over); the home screens stay on foot
-            bool riding = mode == Mode.Epilogue || (Owns("bike") && (mode == Mode.Play || mode == Mode.Count) && sim.ended != EndReason.Finish);
+            // bought or not, he runs the roofs; the bike only comes out for the ride-off
+            bool riding = mode == Mode.Epilogue;
             bike.SetActive(riding);
             if (riding) foreach (var w in bikeWheels) w.Rotate(sim.speed * simDt * 150f, 0, 0, Space.Self);
             runner.Pose(sim, simDt, dashT > 0, sim.ended == EndReason.Finish, riding);
@@ -515,7 +535,7 @@ namespace Overtime
                 }
                 hud.condFill.rectTransform.anchorMax = new Vector2(Mathf.Max(0.02f, sim.condition), 1);
                 hud.condFill.color = sim.condition > 0.7f ? Hud.Green : sim.condition > 0.4f ? Hud.Yellow : Hud.Red;
-                float[] left = { sim.rushT / Sim.RushTime, sim.fizzT / Sim.FizzTime, sim.shield ? 1f : 0f, sim.magnetT / Sim.MagnetTime };
+                float[] left = { sim.rushT / Sim.RushTime, sim.fizzT / Sim.FizzTime, sim.shieldT / Sim.ShieldTime, sim.magnetT / Sim.MagnetTime };
                 int slot = 0;
                 for (int i = 0; i < 4; i++)
                 {
@@ -582,7 +602,8 @@ namespace Overtime
                         if (playing) sfx.Play("win"); break;
                     case EvType.Hint:
                         if (!playing) break;
-                        if (levelIdx == 0 && !TutorialDone && TutorialFor(e.text, out var move, out var say, out var dir)) { tutMove = move; tutWait = 0; hud.Tutorial(say, dir); }
+                        if (duel) hud.Hint(e.text);
+                        else if (levelIdx == 0 && !TutorialDone && TutorialFor(e.text, out var move, out var say, out var dir)) { tutMove = move; tutWait = 0; hud.Tutorial(say, dir); }
                         else hud.Hint(e.text);
                         break;
                     case EvType.Trick:
@@ -617,8 +638,45 @@ namespace Overtime
             if (tutMove == s.ToString() || (tutMove == "side" && (s == Swipe.Left || s == Swipe.Right))) { tutMove = null; hud.Tutorial(null, Vector2.zero); hud.Popup("NICE!", Hud.Green, 0.6f); Haptics.Tap(3); }
         }
 
+        void ShowDuelLeg()
+        {
+            int score = sim.finalScore;
+            bool cleared = sim.ended == EndReason.Finish;
+            if (duelSlot == 0)
+            {
+                scoreA = score; duelPhase = 1; SetMode(Mode.Results);
+                hud.rTitle.text = "PLAYER 1"; hud.rTitle.color = Color.white;
+                hud.rQuote.text = cleared ? "Pass the phone. Your friend runs the same route." : "That fall still counts. Pass the phone.";
+                hud.wageWord = "SCORE";
+                hud.Results(new[] { "Your score" }, new[] { score }, score, 0, 0, 0, "PASS THE PHONE  \u00b7  PLAYER 2 IS NEXT");
+                hud.Label(hud.next, "PLAYER 2"); hud.Label(hud.retry, "RETRY");
+                hud.next.gameObject.SetActive(true); hud.retry.gameObject.SetActive(true);
+                hud.next.transform.parent.GetChild(hud.next.transform.GetSiblingIndex() - 1).gameObject.SetActive(true);
+            }
+            else
+            {
+                scoreB = score; duelPhase = 2;
+                int payout = scoreA == scoreB ? 0 : scoreA > scoreB ? Stake : -Stake;
+                if (payout > 0) { Wallet += Stake; FriendWallet -= Stake; }
+                else if (payout < 0) { Wallet -= Stake; FriendWallet += Stake; }
+                SetMode(Mode.Results);
+                hud.rTitle.text = payout > 0 ? "YOU WIN" : payout < 0 ? "FRIEND WINS" : "DEAD HEAT";
+                hud.rTitle.color = payout > 0 ? Color.white : payout < 0 ? Hud.Red : Hud.Yellow;
+                hud.rQuote.text = payout == 0 ? "Same score. Nobody pays." : payout > 0 ? "Your friend pays you 200 Tocks." : "You pay your friend 200 Tocks.";
+                hud.wageWord = payout < 0 ? "YOU PAY" : payout > 0 ? "YOU TAKE" : "STAKE";
+                hud.Results(new[] { "You", "Friend" }, new[] { scoreA, scoreB }, payout == 0 ? 0 : Stake, 0, 0, 0, "SAME PHONE  \u00b7  HIGHER SCORE TAKES 200");
+                hud.Label(hud.next, "REMATCH");
+                hud.next.gameObject.SetActive(true);
+                // the child before next is the retry button itself, so turn it off after that line
+                hud.next.transform.parent.GetChild(hud.next.transform.GetSiblingIndex() - 1).gameObject.SetActive(true);
+                hud.retry.gameObject.SetActive(false);
+            }
+        }
+
         void ShowResults()
         {
+            if (duel) { ShowDuelLeg(); return; }
+            hud.wageWord = "WAGES"; hud.Label(hud.retry, "RETRY"); hud.Label(hud.next, "NEXT JOB");
             var L = sim.level; var d = L.delivery; bool won = sim.ended == EndReason.Finish; int score = sim.finalScore;
             int stars = 0; if (won) foreach (int t in L.stars) if (score >= t) stars++;
             int prevBest = Best(L.id);

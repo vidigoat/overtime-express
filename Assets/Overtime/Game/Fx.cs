@@ -59,6 +59,9 @@ namespace Overtime
             trail.widthMultiplier = 0.07f + Mathf.Min(0.12f, sim.chain * 0.008f);
             var c = (sim.overtime ? Mats.Hex(0xff2040) : flow) * (0.3f + Mathf.Min(0.6f, sim.chain * 0.04f)) * Mathf.Lerp(1f, 0.28f, Shader.GetGlobalFloat("_OTDay"));
             trail.sharedMaterial.SetColor("_Tint", c);
+            // warm roof dust while running; overtime stays a clean red
+            if (sim.Grounded && !sim.overtime && Random.value < 0.25f)
+                Burst(new Vector3(packPos.x, packPos.y - 0.9f, packPos.z), 1, new Color(0.75f, 0.62f, 0.42f), 1.4f, 0.6f, -sim.speed * 0.15f, 0.16f, 0.28f, 3f);
             var fo = ps.forceOverLifetime; fo.enabled = true; fo.y = -gravity;
         }
     }

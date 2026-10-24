@@ -111,6 +111,12 @@ namespace Overtime
                                 Prop(name, x, r.y, s, ry, name == "tank" ? 0.85f : 1);
                             }
                             else art.Spawn(name, root.transform, new Vector3(x, r.y, s), Quaternion.Euler(0, Mathf.Floor(Rnd() * 4) * 90 + (Rnd() - 0.5f) * 24, 0), name.StartsWith("crate") ? 1.6f : 1.35f);
+                            // a small torch on the lane side of the clutter, lining the board
+                            if (Rnd() < 0.35f)
+                            {
+                                Box(dark, x, r.y + 0.9f, s, 0.07f, 0.9f, 0.07f);
+                                Box(Mats.Glow(Mats.Hex(0xffb347), 2.4f), x, r.y + 1.45f, s, 0.18f, 0.22f, 0.18f, 0, false);
+                            }
                         }
                         s += 4.5f + Rnd() * 6;
                     }
@@ -258,6 +264,13 @@ namespace Overtime
                 float top = near ? -16 + Rnd() * 30 : -20 + Rnd() * Rnd() * 120;
                 float z = -80 + (i / (float)count) * span + Rnd() * 6;
                 Box(bld, x, top - 80, z, w, 160, dp, 0, false);
+                // one tall sheet down the inner face of some near towers
+                if (near && i % 6 == 0)
+                {
+                    var fall = Mesh(Mats.Quad, Mats.Fx(1, Mats.Hex(0x9fdfff) * 0.55f), new Vector3(x - side * (w * 0.5f + 0.15f), top - 22f, z), Quaternion.identity, new Vector3(1.6f, 40f, 1f), false);
+                    // a slight yaw so the sheet faces the chase camera instead of turning edge-on
+                    fall.transform.rotation = Quaternion.Euler(0, side > 0 ? 18 : -18, 0);
+                }
                 // neon billboards on the nearer towers: the city talks about time, money and the competition
                 if (near && i % 4 == 1 && z > 20 && z < level.length)
                 {
