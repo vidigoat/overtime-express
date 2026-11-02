@@ -36,7 +36,7 @@ namespace Overtime
         };
 
         /// <summary>
-        /// Build the hero courier under a parent: body, delivery pack with the glowing clock, strap, headlamp and lit soles.
+        /// Build the hero courier under a parent: body, delivery pack with the glowing clock, strap and headlamp.
         /// variant "Worker" = helmet and hi-vis vest; "Casual" = jersey, shorts and a courier cap.
         /// </summary>
         public static CharBody BuildCourier(Transform parent, string variant, float scale, Material flowGlow, Material clockGlow, out Transform pack)
@@ -98,8 +98,6 @@ namespace Overtime
                     Box(b.head, new Vector3(-0.04f, -0.05f, -0.16f), new Vector3(-40, -10, 0), new Vector3(0.05f, 0.03f, 0.14f), orange);
                 }
             }
-            Box(Find(b.model, "Foot.L"), new Vector3(0, -0.07f, 0.03f), Vector3.zero, new Vector3(0.1f, 0.022f, 0.25f), flowGlow);
-            Box(Find(b.model, "Foot.R"), new Vector3(0, -0.07f, 0.03f), Vector3.zero, new Vector3(0.1f, 0.022f, 0.25f), flowGlow);
             return b;
         }
 

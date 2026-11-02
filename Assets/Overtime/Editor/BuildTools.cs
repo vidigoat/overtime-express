@@ -30,15 +30,27 @@ namespace Overtime.EditorTools
         /// Exports the native iPhone project into Builds/iOS: portrait, full screen, 120 Hz, automatic signing.
         /// Xcode then signs it with the team from the Apple ID signed into Xcode and installs it on a plugged-in phone.
         /// </summary>
+        /// <summary>The gold Tock over the neon road, scaled by Unity to every size the platforms need.</summary>
+        public static string SetAppIcon()
+        {
+            var icon = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Overtime/Art/AppIcon.png");
+            if (icon == null) return "no icon";
+            PlayerSettings.SetIcons(UnityEditor.Build.NamedBuildTarget.Unknown, new[] { icon }, IconKind.Any);
+            return "icon set";
+        }
+
         [MenuItem("Overtime/Build iPhone")]
         public static string BuildIOS() => BuildIOS(PlayerSettings.iOS.appleDeveloperTeamID);
         public static string BuildIOS(string team)
         {
             PlayerSettings.companyName = "Overtime Express"; PlayerSettings.productName = "Overtime";
+            SetAppIcon();
             PlayerSettings.SetApplicationIdentifier(UnityEditor.Build.NamedBuildTarget.iOS, "com.vidigoat.overtime");
             PlayerSettings.bundleVersion = "1.0"; PlayerSettings.iOS.buildNumber = System.DateTime.Now.ToString("yyMMddHHmm");
             PlayerSettings.defaultInterfaceOrientation = UIOrientation.Portrait;
             PlayerSettings.iOS.targetOSVersionString = "16.0";
+            PlayerSettings.iOS.targetDevice = iOSTargetDevice.iPhoneOnly;      // no iPad layout, so no iPad screenshots needed
+            PlayerSettings.iOS.appInBackgroundBehavior = iOSAppInBackgroundBehavior.Suspend;
             PlayerSettings.iOS.appleEnableAutomaticSigning = true;
             if (!string.IsNullOrEmpty(team)) PlayerSettings.iOS.appleDeveloperTeamID = team;
             PlayerSettings.iOS.hideHomeButton = false; PlayerSettings.iOS.deferSystemGesturesMode = UnityEngine.iOS.SystemGestureDeferMode.BottomEdge;

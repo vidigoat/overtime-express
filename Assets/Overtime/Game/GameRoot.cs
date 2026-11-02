@@ -299,7 +299,7 @@ namespace Overtime
             for (int k = 0; k < 3; k++)
             {
                 hud.bGoalText[k].text = l.stars[k].ToString("N0");
-                hud.bGoalPip[k].color = have > k ? Hud.Yellow : new Color(1, 1, 1, 0.22f);
+                hud.bGoalPip[k].sprite = UIKit.Glyph(have > k ? "star-fill" : "star"); hud.bGoalPip[k].color = have > k ? Hud.Yellow : new Color(1, 1, 1, 0.35f);
                 hud.bGoalTile[k].color = have > k ? new Color(0.36f, 0.28f, 0.1f) : new Color(0.2f, 0.18f, 0.42f);
             }
             SetMode(Mode.Brief);

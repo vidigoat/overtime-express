@@ -23,6 +23,9 @@ namespace Overtime
         /// <summary>A full-screen vertical gradient, tinted per screen.</summary>
         public static Sprite Gradient => cache.TryGetValue("grad", out var s) ? s : cache["grad"] = MakeGradient();
 
+        /// <summary>A Lucide icon (white, tint with Image.color): star, star-fill, lock, check, map, shopping-bag, house, chevron-left, package, trophy, zap...</summary>
+        public static Sprite Glyph(string name) => cache.TryGetValue("g_" + name, out var s) ? s : cache["g_" + name] = Resources.Load<Sprite>("Icons/" + name);
+
         static float Sat(float v) => Mathf.Clamp01(v);
 
         static Sprite MakePanel(int r, int lip)
@@ -119,7 +122,7 @@ namespace Overtime
             var art = ArtLibrary.I;
             var rig = new GameObject("IconRig"); rig.transform.position = new Vector3(0, -800, 0);
             var t = art != null ? art.Spawn(model, rig.transform, rig.transform.position, Quaternion.Euler(0, yaw, 0), 1f, false) : null;
-            if (t == null) { Object.Destroy(rig); return cache[key] = null; }
+            if (t == null) { Object.DestroyImmediate(rig); return cache[key] = null; }
             foreach (var tr in rig.GetComponentsInChildren<Transform>(true)) tr.gameObject.layer = IconLayer;
             var rends = rig.GetComponentsInChildren<Renderer>();
             var b = rends[0].bounds; foreach (var r in rends) b.Encapsulate(r.bounds);
@@ -142,7 +145,8 @@ namespace Overtime
             var prev = RenderTexture.active; RenderTexture.active = rt;
             var tex = new Texture2D(256, 256, TextureFormat.RGBA32, false); tex.ReadPixels(new Rect(0, 0, 256, 256), 0, 0); tex.Apply();
             RenderTexture.active = prev; cam.targetTexture = null; RenderTexture.ReleaseTemporary(rt);
-            Object.Destroy(cg); Object.Destroy(lg); Object.Destroy(rig);
+            // destroy now, not at end of frame: the next icon is shot in the same spot and must not see this one
+            Object.DestroyImmediate(cg); Object.DestroyImmediate(lg); Object.DestroyImmediate(rig);
             return cache[key] = Sprite.Create(tex, new Rect(0, 0, 256, 256), new Vector2(0.5f, 0.5f), 100);
         }
     }
