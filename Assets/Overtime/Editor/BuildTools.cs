@@ -39,6 +39,21 @@ namespace Overtime.EditorTools
             return "icon set";
         }
 
+        /// <summary>
+        /// The store listing says the app collects no data and makes no network calls, so the player must not send
+        /// Unity's hardware statistics or crash reports. submitAnalytics has no public setter, hence the serialized edit.
+        /// </summary>
+        public static string DisableTelemetry()
+        {
+            PlayerSettings.enableCrashReportAPI = false;
+            var asset = AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/ProjectSettings.asset").FirstOrDefault();
+            var so = new SerializedObject(asset);
+            so.FindProperty("submitAnalytics").boolValue = false;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            AssetDatabase.SaveAssets();
+            return "telemetry off";
+        }
+
         [MenuItem("Overtime/Build iPhone")]
         public static string BuildIOS() => BuildIOS(PlayerSettings.iOS.appleDeveloperTeamID);
         public static string BuildIOS(string team)
@@ -58,6 +73,7 @@ namespace Overtime.EditorTools
             PlayerSettings.SetScriptingBackend(UnityEditor.Build.NamedBuildTarget.iOS, ScriptingImplementation.IL2CPP);
             PlayerSettings.SetArchitecture(UnityEditor.Build.NamedBuildTarget.iOS, 1);
             PlayerSettings.iOS.sdkVersion = iOSSdkVersion.DeviceSDK;
+            DisableTelemetry();
             var opts = new BuildPlayerOptions
             {
                 scenes = EditorBuildSettings.scenes.Where(s => s.enabled).Select(s => s.path).ToArray(),

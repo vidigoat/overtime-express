@@ -1,0 +1,23 @@
+SCREEN RECORDING
+A screen recording captured on a physical iPhone running the latest iOS is attached in the Attachment field of App Review Information. It starts at app launch and shows the full typical flow: title screen, company HQ, the city route map, a job briefing, a complete delivery run, the payout screen, and the gear shop. The app has no account registration or login, no user-generated content, and no paid content or in-app purchases, so none of those flows exist.
+
+1. PURPOSE AND TARGET AUDIENCE
+Overtime Express is a single-player, offline arcade runner game for casual players aged 13 and up. You play a courier who has just started a one-person delivery company in a neon city. Each job is a short run across rooftops against a ticking clock: you dodge obstacles, jump gaps and grab Tocks (the in-game currency, earned only by playing). Wages buy gear that changes how you play, and finishing jobs unlocks new districts on the city route map. The value it provides is quick, one-thumb entertainment in 1-2 minute sessions with a light story and progression. It is free, with no ads, no in-app purchases, no accounts and no data collection.
+
+2. HOW TO ACCESS THE MAIN FEATURES
+No login, credentials or sample files are needed. Everything is available offline right after install.
+- Launch the app and tap CLOCK IN on the title screen to reach HQ.
+- Tap DELIVER to see the job briefing, then tap START SHIFT to run.
+- Controls (one thumb, swipe anywhere): swipe left/right to change lanes, swipe up to jump, swipe up again while in the air to dash across big gaps, swipe down to slide. The first job shows an on-screen tutorial for each move and slows the game down until you do it.
+- Reach the end of the route before the clock runs out to deliver the parcel. The payout screen shows wages, stars and rank progress.
+- From HQ, CITY ROUTE opens the level map (completed jobs, stars, next job, bonus pay stops) and GEAR SHOP lets you spend Tocks on gear such as gloves, shoes, a magnet and a bike.
+- Progress is saved on the device automatically.
+
+3. EXTERNAL SERVICES
+None. The app makes no network requests and uses no third-party services: no analytics, advertising, authentication, payment processing, data providers or AI services. It is built with the Unity game engine and runs entirely on the device.
+
+4. REGIONAL DIFFERENCES
+None. The app works identically in every region. All content is the same everywhere, in English, and works fully offline.
+
+5. REGULATED INDUSTRY / THIRD-PARTY MATERIAL
+The app is not in a regulated industry. All content is original to Overtime Express or used under permissive licences that allow commercial use: 3D characters, animations and props from Quaternius and Kay Lousberg (KayKit) under CC0 (public domain), and interface icons from Lucide under the ISC licence. No trademarks, brands or copyrighted characters belonging to others are used. The game has no audio.
